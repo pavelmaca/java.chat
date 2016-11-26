@@ -2,7 +2,7 @@
 
 ## Funkcionalita
 Projekt obsahuje jak serverovou část, tak klienta.
-Komunikace probíhá na úrovni TCP socketů. Každý klient se připojuje na server, pomocí nastavení IP adresy a portu.
+Komunikace probíhá na úrovni TCP socketů. Každý klient se připojuje na server, pomocí nastavené IP adresy a portu.
 
 
 ### Server
@@ -40,3 +40,25 @@ Místnost lze chránit heslem a vytvořit ji tak soukromou pro specifické uživ
 U každé místnosti je zobrazen seznam připojených / online uživatelů.
 Majitel místnosti má možnost vyloučit ostatní uživatele z místnosti.
 
+Nastavení klienta (server IP a port) se ukádají do lokálního soboru.
+
+### Komunikace klient-server
+Komunikaci na straně klienta obstarává jedno vlákno.
+
+Mezi server a klientem se posílají objekty typu 'DataGram', který je specifikovaný na obou stranách komunikace.
+Tento objekt je dále rozšířen na typ 'Message', která obsahuje textovou zprávu s časem jejího odeslání a místnost.  
+Další typy:
+ - CreateRoom = vytvoření nové místnosti
+ - Status = počet uživatelů, kteří jsou připojeni do místnosti.
+ - Join = připojení do místnosti
+ - Leave = odpojení od místnosti
+ - History = historie místnosti
+ - RoomList = seznam místností
+
+Server po přihlášení odešle uživateli seznam všech místností. 
+Následně klient obdrží historii všech místností, ve kterých je přihlášen.
+
+Při vytváření místnosti, klient odesílá požadavek na její vytvoření. Server odpovídá stavem, zda byla místnost vytvořena, případně chybovou zprávou.
+Následně klient automaticky vstoupí do místnosti.
+
+Kdykoli klient vstoupí do místnosti, odešle serveru tento požadavek a server odpovídá historií této místnosti, nebo chybovým stavem.
