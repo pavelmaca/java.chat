@@ -1,0 +1,48 @@
+Dobrý den,
+rád bych Vám představil svou představu pro semestrální projekt z Objektového programování 2.
+
+Název projektu: Komunikační klient
+Klient připojitelný na specifické REST API rozhraní, které umožňuje komunikaci mezi ostatními klienty. Server a klienti budou poskytovat možno vytváření tzv. chatovacích místností.
+
+Forma komunikace bude textová.
+
+Základní rozhraní bude tvořit nabídka dostupných chatovacích místností a okno s aktuálně otevřenou místností a zprávami.
+
+Pokud některý uživatel odešle zprávu do stejné místnosti, zobrazí se ostatním uživatelům, kteří jsou připojeni v dané místnosti.
+Pokud uživatel obdrží zprávu v jiné místnosti, zobrazí se počet nepřečtených zpráv k dané místnosti v seznamu všech místností.
+
+Uživatel bude vstupovat do místnosti, tím že začne naslouchat její komunikaci.
+
+Projekt bude využívat síťové programování při používání REST API ve formátu JSON a vláknové programování při naslouchání na více chatovacích místnostech.
+
+Server bude implementován v PHP v rámci jiné semestrální práce a bude jasně specifikované rozhraní pro komunikaci.
+
+=====================================
+
+Dobrý den,
+na cvičení jsem se Vás ptal, zda mohu použít mnou dříve zaslaný návrh ohledně chatovací aplikace. Podrobný popis je v předchozím emailu.
+Vaše odpověď byla zamítavá.
+
+Rád bych se zeptal, zda by bylo možné toto téma nějak rozšířit.
+V seznamu témata je možnost výběru "Síťový nástroj pro online komunikaci".
+
+Případně mě zaujal "Jednoduchý e-shop", ale bohužel neumím si představit rozsah implementace v Javě spolu s grafikou. Mám spíše zkušenost se PHP řešením.
+
+=====================================
+Zdravim,
+nabizi se nasledujici rozsireni krome vami navrhovanych mistnosti:
+
+- rozsireni na online i offline komunikaci - pokud klient nebude online, zpravy pro nej se mu zobrazi po prihlaseni
+
+- system ukaze klientovi, kdo je aktualne online, pokud se nekdo prihlasi/odhlasi, vsichni klienti na to budou ihned reagovat
+- skupiny budou definovany obecne, uzivatel bude moci byt ve vice skupinach, GUI bude mit funkcionalitu, pomoci ktere se uzivatel bude moci sam prihlasovat a odhlasovat ze skupin
+- klient i server v jave
+
+- vzhledem k rozsahu ukolu ocekavam velmi dobre graficke rozhrani
+
+- pouzijete vlakna, sitove programovani a databazi
+
+
+S touto specifikaci tema schvaluji.
+S pozdravem
+Jiří Jelínek
