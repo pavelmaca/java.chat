@@ -57,9 +57,3 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
-
-.gitignore
-java.chat.iml
-java.chat.ipr
-java.chat.iws
-src/
