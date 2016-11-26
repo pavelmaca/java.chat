@@ -7,14 +7,14 @@ Komunikace probíhá na úrovni TCP socketů. Každý klient se připojuje na se
 
 ### Server
 Aplikace bez grafického rozhraní, pouze konzolový vstup a výstup.
-Po spuštění lze nastavit číslo portu pro naslouchání novích klientů.
+Po spuštění lze nastavit číslo portu pro naslouchání nových klientů.
 
-Každý připojený klient vytvoří samostatné vlákno, která má za úkol příjem veškeré komunikace od daného klienta.
+Každý připojený klient vytvoří samostatné vlákno, které má za úkol příjem veškeré komunikace od daného klienta.
 Pokud klient vytvoří novou místnost, tato místnost bude reprezentována vláknem, rozesílá veškerou komunikaci všem klientům, kteří se do místnosti připojí.
-Ve chvíli kdy je místnost prázdá, se vlákno ukončí. Místnost je však nadále uchována v databázi až do jejího smazání, které může provést pouze tvůrce místnosti.
-Po připojení do místnosti, které je prázdná se opět spustí vlákno tété místnosti.
+Ve chvíli kdy je místnost prázdná, se vlákno ukončí. Místnost je však nadále uchována v databázi až do jejího smazání, které může provést pouze tvůrce místnosti.
+Po připojení do místnosti, které je prázdná, se opět spustí vlákno této místnosti.
 
-Uživatel, který je offline a neopustil místnost obdrží veškeré zprávy z doby, kdy byl offline po spuštění klienta.
+Uživatel, který byl off-line a neopustil místnost, obdrží veškeré zprávy z této doby, jakmile bude opět online.
 
 ### Klient
 Grafické rozhraní umožnuje nastavit IP adresu a port serveru, ke kterému se klient připojí.
