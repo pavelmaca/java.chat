@@ -16,6 +16,19 @@ Po připojení do místnosti, které je prázdná, se opět spustí vlákno tét
 
 Uživatel, který byl off-line a neopustil místnost, obdrží veškeré zprávy z této doby, jakmile bude opět online.
 
+Zpráva od klienta je po obdržení zapasána do databáze a následně odeslána vláknem místnosti všem připojeným klientům.
+
+### Databáze
+Každý uživatel je reprezentován záznamem v tabulce 'user'. Záznam obsahuje jméno uživatele, které je jedinečné a jeho heslo.
+ 
+Místnost bude identifikovatelná svým jménem, které bude jednoznačné. 
+Každá místnost má také svého autora, který je automaticky administrátorem této místnosti.
+Po smazání místnosti je tato místnost označena jako smazaná, ale data zůstávají nadále zachována. Za její jméno se přidá sufix '_deleted'
+
+Seznam uživatelů v místnosti je reprezentován záznamy v tabulce 'user_room'.  
+
+Zpráva obsahuje čas odeslání, odesílatele a místnost, ve které byla odeslána.
+
 ### Klient
 Grafické rozhraní umožnuje nastavit IP adresu a port serveru, ke kterému se klient připojí.
 Tuto volbu lze uložit.  
