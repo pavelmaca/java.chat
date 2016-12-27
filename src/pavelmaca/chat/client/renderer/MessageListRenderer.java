@@ -4,52 +4,57 @@ import pavelmaca.chat.client.model.Message;
 import pavelmaca.chat.client.model.User;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class MessageListRenderer extends JTextArea implements ListCellRenderer<Message> {
+public class MessageListRenderer implements ListCellRenderer<Message> {
 
     protected User currentUser;
 
+    private JPanel panel;
+    private JLabel l;
+    private JTextArea message;
+    private JLabel author;
+
+
     public MessageListRenderer(User currentUser) {
         this.currentUser = currentUser;
-        setOpaque(true);
+
+        panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+
+        // text
+        message = new JTextArea();
+        message.setLineWrap(true);
+        message.setWrapStyleWord(true);
+        panel.add(message, BorderLayout.CENTER);
+
+        JPanel topPane = new JPanel();
+        topPane.setLayout(new BoxLayout(topPane, BoxLayout.Y_AXIS));
+
+        author = new JLabel("");
+        author.setOpaque(true);
+        topPane.add(author);
+        topPane.add(Box.createVerticalGlue());
+
+        panel.add(topPane, BorderLayout.LINE_START);
+
     }
 
     @Override
     public Component getListCellRendererComponent(JList<? extends Message> list, Message message, int index,
                                                   boolean isSelected, boolean cellHasFocus) {
-
-       /* String code = roomgetCode();
-        ImageIcon imageIcon = new ImageIcon(getClass().getResource("/images/" + code + ".png"));
-
-        setIcon(imageIcon);*/
-        setText(message.getAuthor().getName() + ": " + message.getContent());
-        setBorder(new EmptyBorder(5, 10, 5, 10)); // padding
-
-        setLineWrap(true);
-        setWrapStyleWord(true);
-
-        if (message.getAuthor().equals(currentUser)) {
-            Font bold = new Font(getFont().getFontName(), Font.BOLD, getFont().getSize());
-            setFont(bold);
-           // setHorizontalAlignment(LEFT);
-        } /*else {
-            setHorizontalAlignment(RIGHT);
-        }*/
+        this.message.setText(message.getContent());
+        int width = list.getWidth();
+        // this is just to lure the ta's internal sizing mechanism into action
+        if (width > 0)
+            this.message.setSize(width, Short.MAX_VALUE);
 
 
-        if (isSelected) {
-            setBackground(list.getSelectionBackground());
-            setForeground(list.getSelectionForeground());
-        } else {
-            setBackground(list.getBackground());
-            setForeground(list.getForeground());
-        }
+        this.author.setText(message.getAuthor().getName()+":");
+        return panel;
 
-        return this;
     }
 }

@@ -479,6 +479,16 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
   </component>
+  <component name="libraryTable">
+    <library name="libs">
+      <CLASSES>
+        <root url="file://$PROJECT_DIR$/libs" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+      <jarDirectory url="file://$PROJECT_DIR$/libs" recursive="false" />
+    </library>
+  </component>
   <component name="masterDetails">
     <states>
       <state key="GlobalLibrariesConfigurable.UI">

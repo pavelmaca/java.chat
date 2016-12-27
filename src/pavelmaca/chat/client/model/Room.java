@@ -11,6 +11,8 @@ public class Room {
 
     private ArrayList<User> userList;
 
+    private ArrayList<Message> messages;
+
     public Room(String name, User owner) {
         this.name = name;
         this.owner = owner;
@@ -31,5 +33,9 @@ public class Room {
 
     public ArrayList<User> getUserList(){
         return userList;
+    }
+
+    public ArrayList<Message> getMessages() {
+        return messages;
     }
 }

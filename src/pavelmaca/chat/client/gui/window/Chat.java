@@ -9,6 +9,8 @@ import pavelmaca.chat.client.renderer.UserListRenderer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -78,6 +80,9 @@ public class Chat extends Window {
         roomListModel.setFixedCellWidth(100);
         roomListModel.setCellRenderer(new RoomListRenderer());
 
+        JButton joinRoom = new JButton("Join room");
+        panel.add(joinRoom, BorderLayout.PAGE_END);
+
         return panel;
     }
 
@@ -122,6 +127,20 @@ public class Chat extends Window {
         roomList.setFixedCellWidth(100);
         roomList.setMinimumSize(new Dimension(100, 25));
         roomList.setCellRenderer(new MessageListRenderer(currentUser));
+        roomList.addComponentListener(new ComponentAdapter() {
+            /**
+             * https://stackoverflow.com/questions/7306295/swing-jlist-with-multiline-text-and-dynamic-height
+             * @param e
+             */
+            @Override
+            public void componentResized(ComponentEvent e) {
+                // next line possible if list is of type JXList
+                //roomList.invalidateCellSizeCache();
+                // for core: force cache invalidation by temporarily setting fixed height
+                roomList.setFixedCellHeight(10);
+                roomList.setFixedCellHeight(-1);
+            }
+        });
 
 
         JTextField message = new JTextField();
