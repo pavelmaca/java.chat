@@ -48,7 +48,7 @@ public class Session {
         Command command = new Command(Command.Types.GET_IDENTITY);
 
         Status response = sendRequest(command);
-        if(response.getCode() == Status.Codes.OK){
+        if (response.getCode() == Status.Codes.OK) {
             return (User) response.getBody();
         }
         return null;

@@ -28,13 +28,13 @@ public class Chat extends Window {
     protected ArrayList<Room> roomList;
 
     protected void setupDemo() {
-        currentUser = new User("Assassik");
+        currentUser = new User("Assassik", "123");
 
         Random random = new Random(123456);
 
         userList = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            userList.add(new User("User " + i));
+            userList.add(new User("User " + i, "123"));
         }
 
         roomList = new ArrayList<>();

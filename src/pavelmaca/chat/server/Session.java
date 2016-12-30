@@ -3,6 +3,7 @@ package pavelmaca.chat.server;
 import pavelmaca.chat.client.model.User;
 import pavelmaca.chat.commands.Command;
 import pavelmaca.chat.commands.Status;
+import pavelmaca.chat.server.repository.UserRepository;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -24,9 +25,12 @@ public class Session implements Runnable {
     private ObjectInputStream inputStream = null;
     private ObjectOutputStream outputStream = null;
 
-    public Session(Socket clientSocket) {
+    private UserRepository userRepository;
+
+    public Session(Socket clientSocket, UserRepository userRepository) {
         this.state = States.NEW;
         this.clientSocket = clientSocket;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -110,7 +114,14 @@ public class Session implements Runnable {
         Status response = new Status(Status.Codes.OK);
         HashMap<String, Object> params = command.getParametrs();
 
-        user = new User((String) params.get("username"));
+        String username = (String) params.get("username");
+        String password = (String) params.get("password");
+
+        user = userRepository.authenticate(username, password);
+        if (user == null) {
+            sendResponse(new Status(Status.Codes.ERROR));
+            return;
+        }
         response.setBody(user);
 
         if (sendResponse(response)) {
@@ -120,6 +131,7 @@ public class Session implements Runnable {
 
     protected void handleGetIdentity(Command command) {
         System.out.println("identity request received");
+
         Status response = new Status(Status.Codes.OK);
         response.setBody(user);
         sendResponse(response);
