@@ -1,5 +1,6 @@
 package pavelmaca.chat.client.gui.window;
 
+import pavelmaca.chat.client.Client;
 import pavelmaca.chat.client.model.Message;
 import pavelmaca.chat.client.model.Room;
 import pavelmaca.chat.client.model.User;
@@ -11,8 +12,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.function.Function;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -46,8 +50,10 @@ public class Chat extends Window {
 
     }
 
-    public Chat(String title) {
-        super(title);
+    public Chat(User currentUser) {
+        super("chat room name");
+        this.currentUser = currentUser;
+        System.out.println("my identity is:"+currentUser.getName());
     }
 
     @Override

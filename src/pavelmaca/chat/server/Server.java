@@ -1,14 +1,13 @@
 package pavelmaca.chat.server;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-import java.util.Scanner;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -20,9 +19,13 @@ public class Server {
 
         // connect to DBf
         Connection connection = createDatabaseConnection();
-        if(connection == null){
+        if (connection == null) {
             return;
         }
+
+        int listeningPort = Configurator.getListeningPort();
+
+        startListening(listeningPort);
 
         try {
             Statement statement = connection.createStatement();
@@ -34,41 +37,7 @@ public class Server {
     }
 
     private static Connection createDatabaseConnection() {
-        String configFile = "database.properties";
-        Properties properties = new Properties();
-        try {
-            // load connection from config, if exists
-            FileInputStream inputStream = new FileInputStream(configFile);
-            properties.load(inputStream);
-        } catch (IOException e) {
-            //e.printStackTrace();
-
-            // Setup connection
-            System.out.println("Can not load database configuration.");
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("host:");
-            properties.setProperty("host", scanner.next());
-
-            System.out.println("port:");
-            properties.setProperty("port", scanner.next());
-
-            System.out.println("username:");
-            properties.setProperty("user", scanner.next());
-
-            System.out.println("password:");
-            properties.setProperty("password", scanner.next());
-
-            System.out.println("database:");
-            properties.setProperty("database", scanner.next());
-            try {
-                FileOutputStream outputStream = new FileOutputStream(configFile);
-                properties.store(outputStream, null);
-            } catch (IOException e1) {
-                //e1.printStackTrace();
-                System.out.println("Can not save database configuration.");
-            }
-        }
-
+        Properties properties = Configurator.getDatabaseConfig("database.properties");
         String url = "jdbc:mysql://" + properties.getProperty("host") + ":" + properties.getProperty("port")
                 + "/" + properties.getProperty("database");
 
@@ -79,4 +48,25 @@ public class Server {
             return null;
         }
     }
+
+    private static void startListening(int port) {
+        try {
+            // TODO start in own thread, or not?
+            // TODO exit command?
+            ServerSocket serverSocket = new ServerSocket(port);
+
+            System.out.println("Listening on port " + port + "...");
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("client connected");
+                //accept a connection;
+                //create a thread to deal with the client;
+                new Thread(new Session(clientSocket)).start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

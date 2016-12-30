@@ -8,6 +8,15 @@ import java.awt.*;
  */
 public class Connection extends Window {
 
+
+    private JTextField serverIP;
+    private JTextField serverPort;
+    private JLabel serverIPLabel;
+    private JLabel serverPortLabel;
+    private JButton connectBtn;
+    private JCheckBox saveCheckBox;
+    private JLabel errorLabel;
+
     public Connection() {
         super("Connection setting");
     }
@@ -17,19 +26,25 @@ public class Connection extends Window {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
-        JTextField serverIP = new JTextField();
-        JTextField serverPort = new JTextField();
-        JLabel serverIPLabel = new JLabel("Server");
-        JLabel serverPortLabel = new JLabel("Port");
+        serverIP = new JTextField();
+        serverPort = new JTextField();
+        serverIPLabel = new JLabel("Server");
+        serverPortLabel = new JLabel("Port");
 
-        JButton connectBtn = new JButton("Connect");
-        JCheckBox saveCheckBox = new JCheckBox("Remember server");
+        errorLabel = new JLabel("");
+
+        errorLabel.setVisible(false);
+        errorLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+
+        connectBtn = new JButton("Connect");
+        saveCheckBox = new JCheckBox("Remember server");
 
         panel.add(serverIPLabel);
         panel.add(serverIP);
         panel.add(serverPortLabel);
         panel.add(serverPort);
         panel.add(saveCheckBox);
+        panel.add(errorLabel);
 
         //Lay out the buttons from left to right.
         JPanel buttonPane = new JPanel();
@@ -39,8 +54,46 @@ public class Connection extends Window {
         buttonPane.add(connectBtn);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         frame.getContentPane().add(buttonPane, BorderLayout.PAGE_END);
     }
+
+    public void onSubmit(Function3<String, Integer, Boolean, Void> callback) {
+        connectBtn.addActionListener(e -> {
+            callback.apply(serverIP.getText(), Integer.parseInt(serverPort.getText()), saveCheckBox.isSelected());
+        });
+    }
+
+    public void setDefaults(String host, String port, boolean save) {
+        serverIP.setText(host);
+        serverPort.setText(port);
+        saveCheckBox.setSelected(save);
+    }
+
+    public void showError(String text) {
+        errorLabel.setText(text);
+        errorLabel.setVisible(true);
+        frame.pack();
+    }
+
+   /* protected void setupConnection(String serverIp, int serverPort, boolean saveConfig) {
+        boolean connected = client.connect(serverIp, serverPort);
+        if (connected) {
+            if (saveConfig) {
+                saveConfig(serverIp, serverPort);
+            } else {
+                try {
+                    Files.delete(Paths.get(configFile));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        } else {
+            errorLabel.setText("Can't connect to server.");
+            errorLabel.setVisible(true);
+            frame.pack();
+        }
+    }*/
+
 }
