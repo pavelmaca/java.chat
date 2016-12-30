@@ -22,8 +22,8 @@ public class Status implements Serializable {
         this.body = body;
     }
 
-    public Object getBody() {
-        return body;
+    public <R> R getBody() {
+        return (R) body;
     }
 
     public enum Codes {

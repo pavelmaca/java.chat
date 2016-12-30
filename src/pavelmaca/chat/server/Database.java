@@ -2,6 +2,7 @@ package pavelmaca.chat.server;
 
 
 
+import pavelmaca.chat.server.repository.RoomRepository;
 import pavelmaca.chat.server.repository.UserRepository;
 
 import java.sql.Connection;
@@ -17,6 +18,7 @@ public class Database {
 
     // Repositories
     private UserRepository userRepository;
+    private RoomRepository roomRepository;
 
     public Database(Properties properties) {
         connect(properties);
@@ -55,5 +57,12 @@ public class Database {
             userRepository = new UserRepository(connection);
         }
         return userRepository;
+    }
+
+    public RoomRepository getRoomRepository(){
+        if(roomRepository== null){
+            roomRepository = new RoomRepository(connection);
+        }
+        return roomRepository;
     }
 }

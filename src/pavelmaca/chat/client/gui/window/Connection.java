@@ -1,5 +1,7 @@
 package pavelmaca.chat.client.gui.window;
 
+import pavelmaca.chat.client.Lambdas;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -58,7 +60,7 @@ public class Connection extends Window {
         frame.getContentPane().add(buttonPane, BorderLayout.PAGE_END);
     }
 
-    public void onSubmit(Function3<String, Integer, Boolean, Void> callback) {
+    public void onSubmit(Lambdas.Function3<String, Integer, Boolean> callback) {
         connectBtn.addActionListener(e -> {
             callback.apply(serverIP.getText(), Integer.parseInt(serverPort.getText()), saveCheckBox.isSelected());
         });

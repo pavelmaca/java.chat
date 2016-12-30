@@ -16,18 +16,35 @@ public class Command implements Serializable {
         parameters = new HashMap<>();
     }
 
-    public void addParametr(String key, Object value){
+    public void addParametr(String key, Object value) {
         parameters.put(key, value);
     }
 
-    public HashMap<String, Object> getParametrs(){
+    /*
+    public HashMap<String, Object> getParametrs() {
         return parameters;
+    }
+    */
+
+    public <R> R getParam(String key) {
+        return (R) parameters.get(key);
     }
 
     public enum Types {
+        // client outcoming
         HAND_SHAKE,
         AUTHENTICATION,
-        GET_IDENTITY,
+        ROOM_CREATE,
+        USER_JOIN_ROOM,
+        MESSAGE_NEW,
+        ROOM_GET_LIST,
         CLOSE,
+
+        // client incoming
+        ROOM_NEW_MESSAGE,
+        ROOM_JOIN_USER,
+        ROOM_LEAVE_USER,
+        ROOM_CONNECT_USER,
+        ROOM_DISCONNECT_USER,
     }
 }

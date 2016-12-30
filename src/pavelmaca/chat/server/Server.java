@@ -38,7 +38,7 @@ public class Server {
                 System.out.println("client connected");
                 //accept a connection;
                 //create a thread to deal with the client;
-                new Thread(new Session(clientSocket, database.getUserRepository())).start();
+                new Thread(new Session(clientSocket, database.getUserRepository(), database.getRoomRepository())).start();
             }
         } catch (IOException e) {
             e.printStackTrace();

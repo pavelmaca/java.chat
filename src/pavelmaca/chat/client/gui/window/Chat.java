@@ -1,6 +1,9 @@
 package pavelmaca.chat.client.gui.window;
 
 import pavelmaca.chat.client.Client;
+import pavelmaca.chat.client.Lambdas;
+import pavelmaca.chat.client.Lambdas.Function1;
+import pavelmaca.chat.client.Lambdas.Function2;
 import pavelmaca.chat.client.model.Message;
 import pavelmaca.chat.client.model.Room;
 import pavelmaca.chat.client.model.User;
@@ -12,11 +15,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.function.Function;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -27,14 +27,22 @@ public class Chat extends Window {
     protected User currentUser;
     protected ArrayList<Room> roomList;
 
+    JList<Room> roomListModel;
+
+    // GUI elements
+    JTextField message;
+    JButton sendBtn;
+
+    JButton joinRoom;
+
     protected void setupDemo() {
-        currentUser = new User("Assassik", "123");
+        currentUser = new User(0, "Assassik", "123");
 
         Random random = new Random(123456);
 
         userList = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            userList.add(new User("User " + i, "123"));
+            userList.add(new User(0, "User " + i, "123"));
         }
 
         roomList = new ArrayList<>();
@@ -53,7 +61,7 @@ public class Chat extends Window {
     public Chat(User currentUser) {
         super("chat room name");
         this.currentUser = currentUser;
-        System.out.println("my identity is:"+currentUser.getName());
+        System.out.println("my identity is:" + currentUser.getName());
     }
 
     @Override
@@ -69,6 +77,28 @@ public class Chat extends Window {
         contentPane.add(setupChat(), BorderLayout.CENTER);
     }
 
+    public void onMessageSubmit(Function2<String, Integer> callback) {
+        sendBtn.addActionListener(e -> {
+            Room selectedRoom = roomListModel.getSelectedValue();
+            String text = message.getText();
+            if (!text.isEmpty()) {
+                callback.apply(text, selectedRoom.getId());
+            }
+        });
+    }
+
+    public void onRoomCreated(Lambdas.Function0 callback) {
+        joinRoom.addActionListener(e -> {
+            callback.apply();
+        });
+    }
+
+    public void selectRoom(Room room) {
+        roomListModel.setSelectedValue(room, true);
+        // TODO switch context
+    }
+
+
     protected JPanel setupRoomList() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -79,14 +109,14 @@ public class Chat extends Window {
         roomList.forEach(listModel::addElement);
 
         //create the list
-        JList<Room> roomListModel = new JList<>(listModel);
+        roomListModel = new JList<>(listModel);
         panel.add(new JScrollPane(roomListModel), BorderLayout.CENTER);
 
         roomListModel.setFixedCellHeight(25);
         roomListModel.setFixedCellWidth(100);
         roomListModel.setCellRenderer(new RoomListRenderer());
 
-        JButton joinRoom = new JButton("Join room");
+        joinRoom = new JButton("Join room");
         panel.add(joinRoom, BorderLayout.PAGE_END);
 
         return panel;
@@ -149,8 +179,8 @@ public class Chat extends Window {
         });
 
 
-        JTextField message = new JTextField();
-        JButton sendBtn = new JButton("Send");
+        message = new JTextField();
+        sendBtn = new JButton("Send");
 
         //Lay out the buttons from left to right.
         JPanel buttonPane = new JPanel();

@@ -1,13 +1,15 @@
 package pavelmaca.chat.client.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Room {
+public class Room implements Serializable {
     protected String name;
     private User owner;
+    private int id;
 
     private ArrayList<User> userList;
 
@@ -27,15 +29,34 @@ public class Room {
         return owner;
     }
 
-    public void addUser(User user){
+    public void addUser(User user) {
         userList.add(user);
     }
 
-    public ArrayList<User> getUserList(){
+    public ArrayList<User> getUserList() {
         return userList;
     }
 
     public ArrayList<Message> getMessages() {
         return messages;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public static class Pair implements Serializable{
+        public int id;
+        public String name;
+
+        public Pair(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 }

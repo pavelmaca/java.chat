@@ -10,22 +10,21 @@ import java.sql.SQLException;
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class UserRepository {
-    Connection connection;
+public class UserRepository extends Repository {
 
     public UserRepository(Connection connection) {
-        this.connection = connection;
+        super(connection);
     }
 
     private User findByName(String name) {
         try {
-            PreparedStatement statement = connection.prepareStatement("SELECT name, password FROM user u WHERE name =  ? LIMIT 1");
+            PreparedStatement statement = connection.prepareStatement("SELECT id, name, password FROM user u WHERE name =  ? LIMIT 1");
             statement.setString(1, name);
 
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-                return new User(resultSet.getString(1), resultSet.getString(2));
+                return new User(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -33,18 +32,23 @@ public class UserRepository {
         return null;
     }
 
-    private boolean addUser(User user) {
+    private User addUser(String username, String password) {
         try {
-            PreparedStatement statement = connection.prepareStatement("INSERT INTO user (name, password) VALUES(?, ?)");
-            statement.setString(1, user.getName());
-            statement.setString(2, user.getPassword());
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO user (name, password) VALUES(?, ?)", new String[]{"id"});
+            statement.setString(1, username);
+            statement.setString(2, password);
+
             statement.executeUpdate();
-            System.out.println("created new user");
-            return true;
+
+            ResultSet generatedKeys = statement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                System.out.println("created new user");
+                return new User(generatedKeys.getInt(1), username, password);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
     public User authenticate(String username, String password) {
@@ -52,8 +56,8 @@ public class UserRepository {
 
         // new user, create him in DB
         if (user == null) {
-            user = new User(username, password);
-            if (!addUser(user)) {
+            user = addUser(username, password);
+            if (user == null){
                 return null;
             }
         }

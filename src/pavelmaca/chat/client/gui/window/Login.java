@@ -1,5 +1,7 @@
 package pavelmaca.chat.client.gui.window;
 
+import pavelmaca.chat.client.Lambdas;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.function.Function;
@@ -67,15 +69,15 @@ public class Login extends Window {
         frame.getContentPane().add(buttonPane, BorderLayout.PAGE_END);
     }
 
-    public void onSubmit(Function2<String, String, Void> callback) {
+    public void onSubmit(Lambdas.Function2<String, String> callback) {
         connectBtn.addActionListener(e -> {
             callback.apply(userName.getText(), password.getText());
         });
     }
 
-    public void onCancel(Function<Void, Void> callback) {
+    public void onCancel(Lambdas.Function0 callback) {
         cancelBtn.addActionListener(e -> {
-            callback.apply(null);
+            callback.apply();
         });
     }
 

@@ -46,14 +46,4 @@ public abstract class Window {
 
 
     protected abstract void setupComponents();
-
-    @FunctionalInterface
-    public interface Function2<One, Two, Return> {
-        Return apply(One one, Two two);
-    }
-
-    @FunctionalInterface
-    public interface Function3<One, Two, Three, Return> {
-        Return apply(One one, Two two, Three three);
-    }
 }

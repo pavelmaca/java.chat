@@ -2,10 +2,13 @@ package pavelmaca.chat.client;
 
 import pavelmaca.chat.client.gui.window.Chat;
 import pavelmaca.chat.client.gui.window.Connection;
+import pavelmaca.chat.client.gui.window.JoinRoom;
 import pavelmaca.chat.client.gui.window.Login;
+import pavelmaca.chat.client.model.Room;
 import pavelmaca.chat.client.model.User;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Properties;
 
 /**
@@ -63,29 +66,27 @@ public class Client implements Runnable {
             } else {
                 connectionWindow.showError("Can't connect to server.");
             }
-            return null;
         });
     }
 
     private void openAuthenticationWindow() {
         Login loginWindow = new Login();
         loginWindow.onSubmit((username, password) -> {
-            if (session.authenticate(username, password)) {
-                System.out.println("authenticated");
-
-                loginWindow.close();
-
-                openChatWindow(session.getIdentity());
-            } else {
+            User user = session.authenticate(username, password);
+            if (user == null) {
                 loginWindow.showError("Invalid credencials.");
             }
-            return null;
+
+            System.out.println("authenticated");
+
+            loginWindow.close();
+
+            openChatWindow(user);
         });
-        loginWindow.onCancel((e) -> {
+        loginWindow.onCancel(() -> {
             loginWindow.close();
             session.close();
             openConnectionWindow();
-            return null;
         });
     }
 
@@ -102,12 +103,51 @@ public class Client implements Runnable {
             session.close();
             return null;
         });
-       /* chatWindow.onNewMessage((text, room) -> {
-            if (session.sendMessage(text, room)) {
-                // TODO
-            } else {
-                System.out.println("Error during sending your message");
-            }
+
+        chatWindow.onMessageSubmit((text, roomId) -> {
+            session.sendMessage(text, roomId);
+        });
+
+       /* chatWindow.onRoomSwitch(newRoom -> {
+            // TODO lock ?
+            session.setCurrentRoom(newRoom);
         });*/
+
+        chatWindow.onRoomCreated(() -> openJoinRoomWindow(chatWindow));
+/*
+
+        chatWindow.onRoomLeave(roomId -> {
+            session.leaveRoom(roomId);
+        });
+
+        session.onRoomListUpdated(roomList -> {
+            chatWindow.updateRoomList(roomList);
+        });
+
+        session.onMessageRecived(text -> {
+            chatWindow.recieveMessage(text);
+        });*/
+
+    }
+
+    private void openJoinRoomWindow(Chat chatWindow) {
+        ArrayList<Room.Pair> roomList = session.getAvailableRoomList();
+        JoinRoom joinRoomWindow = new JoinRoom(roomList);
+        joinRoomWindow.onJoinSubmit(roomId -> {
+            Room room = session.joinRoom(roomId);
+            if (room != null) {
+                chatWindow.selectRoom(room);
+                joinRoomWindow.close();
+            }
+            // TODO room authentication
+        });
+
+        joinRoomWindow.onNewRoomSubmit(roomName -> {
+            Room room = session.createRoom(roomName);
+            if (room != null) {
+                chatWindow.selectRoom(room);
+                joinRoomWindow.close();
+            }
+        });
     }
 }
