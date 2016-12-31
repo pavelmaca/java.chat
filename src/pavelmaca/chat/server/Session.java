@@ -1,5 +1,6 @@
 package pavelmaca.chat.server;
 
+import pavelmaca.chat.client.model.Message;
 import pavelmaca.chat.client.model.Room;
 import pavelmaca.chat.client.model.User;
 import pavelmaca.chat.commands.Command;
@@ -28,14 +29,17 @@ public class Session implements Runnable {
     private ObjectInputStream inputStream = null;
     private ObjectOutputStream outputStream = null;
 
+    RoomManager roomManager;
+
     private UserRepository userRepository;
     private RoomRepository roomRepository;
 
     private HashMap<Integer, RoomThread> roomList = new HashMap<>();
 
-    public Session(Socket clientSocket, UserRepository userRepository, RoomRepository roomRepository) {
+    public Session(Socket clientSocket, RoomManager roomManager, UserRepository userRepository, RoomRepository roomRepository) {
         this.state = States.NEW;
         this.clientSocket = clientSocket;
+        this.roomManager = roomManager;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
     }
@@ -92,6 +96,9 @@ public class Session implements Runnable {
             case MESSAGE_NEW:
                 handleMessageReceiver(command);
                 break;
+            case USER_JOIN_ROOM:
+                handleJoinRoom(command);
+                break;
             default:
                 System.out.println("Uknown handler for command type" + command.type);
                 sendResponse(new Status(Status.Codes.ERROR));
@@ -104,7 +111,9 @@ public class Session implements Runnable {
 
     protected boolean sendResponse(Status response) {
         try {
-            outputStream.writeObject(response);
+            synchronized (outputStream) {
+                outputStream.writeObject(response);
+            }
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -141,7 +150,7 @@ public class Session implements Runnable {
         }
     }
 
-    protected void handleRetriveAvalibleRoomList(Command command){
+    protected void handleRetriveAvalibleRoomList(Command command) {
         System.out.println("room list request received");
 
         ArrayList<Room.Pair> roomList = roomRepository.getAllAvailable(user);
@@ -155,15 +164,14 @@ public class Session implements Runnable {
 
         String roomName = command.getParam("name");
         Room room = roomRepository.createRoom(roomName, user);
+        roomRepository.joinRoom(room, user);
 
-        RoomThread roomThread = new RoomThread(room, user);
+        RoomThread roomThread = roomManager.joinRoomThread(room, user, this);
         roomList.put(room.getId(), roomThread);
-        new Thread(roomThread).start();
 
         Status response = new Status(Status.Codes.OK);
         response.setBody(room);
         sendResponse(response);
-
     }
 
     protected void handleMessageReceiver(Command command) {
@@ -181,22 +189,42 @@ public class Session implements Runnable {
     }
 
     protected void handleJoinRoom(Command command) {
-        /*System.out.println("join room request recieved");
+        System.out.println("join room request recieved");
 
-        int roomId = command.getParam("text");
+        int roomId = command.getParam("roomId");
 
-        roomRepository.join(roomId, user);
+        Room room = roomRepository.joinRoom(roomId, user);
 
-        RoomThread roomThread = roomList.get(roomId);
-        if (roomThread != null) {
-            roomThread.connect(user);
+        RoomThread roomThread = roomManager.joinRoomThread(room, user, this);
+        roomList.put(room.getId(), roomThread);
+
+        sendResponse(new Status(Status.Codes.OK));
+    }
+
+    public void sendDisconect() {
+        sendCommand(new Command(Command.Types.CLOSE));
+    }
+
+    public void sendMessage(Message message) {
+        Command command = new Command(Command.Types.MESSAGE_NEW);
+        command.addParametr("message", message);
+        sendCommand(command);
+    }
+
+    private void sendCommand(Command command) {
+        try {
+            synchronized (outputStream) {
+                outputStream.writeObject(command);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-*/
-
     }
 
     private void close() {
         System.out.println("closing session");
+        sendDisconect();
+
         try {
             if (inputStream != null)
                 inputStream.close();
@@ -216,6 +244,12 @@ public class Session implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        roomList.entrySet().parallelStream().forEach(integerRoomThreadEntry -> {
+            RoomThread roomThread = integerRoomThreadEntry.getValue();
+            roomThread.disconnect(user);
+            roomManager.purgeRoomThread(roomThread.getRoom());
+        });
     }
 
     enum States {

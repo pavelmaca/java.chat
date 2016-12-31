@@ -15,7 +15,8 @@ public class Room implements Serializable {
 
     private ArrayList<Message> messages;
 
-    public Room(String name, User owner) {
+    public Room(int id, String name, User owner) {
+        this.id = id;
         this.name = name;
         this.owner = owner;
         this.userList = new ArrayList<>();

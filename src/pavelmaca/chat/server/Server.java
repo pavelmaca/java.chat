@@ -10,6 +10,7 @@ import java.util.Properties;
  */
 public class Server {
     private static Database database;
+    private static RoomManager roomManager;
 
     public static void main(String[] args) {
 
@@ -27,6 +28,8 @@ public class Server {
     }
 
     private static void startListening(int port) {
+        roomManager = new RoomManager();
+
         try {
             // TODO start in own thread, or not?
             // TODO exit command?
@@ -38,7 +41,7 @@ public class Server {
                 System.out.println("client connected");
                 //accept a connection;
                 //create a thread to deal with the client;
-                new Thread(new Session(clientSocket, database.getUserRepository(), database.getRoomRepository())).start();
+                new Thread(new Session(clientSocket, roomManager, database.getUserRepository(), database.getRoomRepository())).start();
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,8 +1,6 @@
 package pavelmaca.chat.client.gui.window;
 
-import pavelmaca.chat.client.Client;
 import pavelmaca.chat.client.Lambdas;
-import pavelmaca.chat.client.Lambdas.Function1;
 import pavelmaca.chat.client.Lambdas.Function2;
 import pavelmaca.chat.client.model.Message;
 import pavelmaca.chat.client.model.Room;
@@ -47,7 +45,7 @@ public class Chat extends Window {
 
         roomList = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
-            Room room = new Room("room " + i, currentUser);
+            Room room = new Room(0, "room " + i, currentUser);
             roomList.add(room);
             int numOfUser = random.nextInt(userList.size()) + 1;
             for (int j = 0; j < numOfUser; j++) {

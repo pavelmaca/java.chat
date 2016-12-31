@@ -32,6 +32,24 @@ public class UserRepository extends Repository {
         return null;
     }
 
+    public User findOneById(int id) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT id, name, password FROM user u WHERE id =  ? LIMIT 1");
+            statement.setInt(1, id);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                return new User(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+
     private User addUser(String username, String password) {
         try {
             PreparedStatement statement = connection.prepareStatement("INSERT INTO user (name, password) VALUES(?, ?)", new String[]{"id"});

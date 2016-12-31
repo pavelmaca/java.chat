@@ -61,7 +61,7 @@ public class Database {
 
     public RoomRepository getRoomRepository(){
         if(roomRepository== null){
-            roomRepository = new RoomRepository(connection);
+            roomRepository = new RoomRepository(connection, getUserRepository());
         }
         return roomRepository;
     }
