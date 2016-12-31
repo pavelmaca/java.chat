@@ -35,9 +35,11 @@ public class Command implements Serializable {
         HAND_SHAKE,
         AUTHENTICATION,
         ROOM_CREATE,
-        USER_JOIN_ROOM,
+        USER_ROOM_JOIN,
+        USER_ROOM_CONNECT,
         MESSAGE_NEW,
-        ROOM_GET_LIST,
+        ROOM_GET_AVAILABLE_LIST,
+        GET_HISTORY,
         CLOSE,
 
         // client incoming

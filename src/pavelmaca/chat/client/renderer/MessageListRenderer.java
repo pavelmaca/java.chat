@@ -1,7 +1,8 @@
 package pavelmaca.chat.client.renderer;
 
-import pavelmaca.chat.client.model.Message;
-import pavelmaca.chat.client.model.User;
+import pavelmaca.chat.server.entity.Message;
+import pavelmaca.chat.server.entity.User;
+import pavelmaca.chat.share.model.MessageInfo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +10,7 @@ import java.awt.*;
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class MessageListRenderer implements ListCellRenderer<Message> {
+public class MessageListRenderer implements ListCellRenderer<MessageInfo> {
 
     protected User currentUser;
 
@@ -44,16 +45,16 @@ public class MessageListRenderer implements ListCellRenderer<Message> {
     }
 
     @Override
-    public Component getListCellRendererComponent(JList<? extends Message> list, Message message, int index,
+    public Component getListCellRendererComponent(JList<? extends MessageInfo> list, MessageInfo message, int index,
                                                   boolean isSelected, boolean cellHasFocus) {
-        this.message.setText(message.getContent());
+        this.message.setText(message.getText());
         int width = list.getWidth();
         // this is just to lure the ta's internal sizing mechanism into action
         if (width > 0)
             this.message.setSize(width, Short.MAX_VALUE);
 
 
-        this.author.setText(message.getAuthor().getName()+":");
+        this.author.setText(message.getAuthorName()+":");
         return panel;
 
     }

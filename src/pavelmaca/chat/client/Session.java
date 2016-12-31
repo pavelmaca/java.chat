@@ -1,9 +1,9 @@
 package pavelmaca.chat.client;
 
-import pavelmaca.chat.client.model.Room;
-import pavelmaca.chat.client.model.User;
 import pavelmaca.chat.commands.Command;
 import pavelmaca.chat.commands.Status;
+import pavelmaca.chat.share.model.RoomInfo;
+import pavelmaca.chat.share.model.RoomStatus;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -36,7 +36,7 @@ public class Session {
         }
     }
 
-    public User authenticate(String username, String password) {
+    public ArrayList<RoomStatus> authenticate(String username, String password) {
         Command command = new Command(Command.Types.AUTHENTICATION);
         command.addParametr("username", username);
         command.addParametr("password", password);
@@ -53,11 +53,11 @@ public class Session {
         Command command = new Command(Command.Types.MESSAGE_NEW);
         command.addParametr("text", text);
         command.addParametr("roomId", roomId);
-        sendRequest(command);
+        sendRequestWithoutResponse(command);
     }
 
-    public ArrayList<Room.Pair> getAvailableRoomList() {
-        Command command = new Command(Command.Types.ROOM_GET_LIST);
+    public ArrayList<RoomInfo> getAvailableRoomList() {
+        Command command = new Command(Command.Types.ROOM_GET_AVAILABLE_LIST);
         Status response = sendRequest(command);
         if (response.getCode() == Status.Codes.OK) {
             return response.getBody();
@@ -65,7 +65,7 @@ public class Session {
         return new ArrayList<>();
     }
 
-    public Room createRoom(String name) {
+    public RoomStatus createRoom(String name) {
         Command command = new Command(Command.Types.ROOM_CREATE);
         command.addParametr("name", name);
         Status response = sendRequest(command);
@@ -75,8 +75,8 @@ public class Session {
         return null;
     }
 
-    public Room joinRoom(int roomId){
-        Command command = new Command(Command.Types.USER_JOIN_ROOM);
+    public RoomStatus joinRoom(int roomId) {
+        Command command = new Command(Command.Types.USER_ROOM_JOIN);
         command.addParametr("roomId", roomId);
         Status response = sendRequest(command);
         if (response.getCode() == Status.Codes.OK) {
@@ -93,6 +93,14 @@ public class Session {
             e.printStackTrace();
         }
         return new Status(Status.Codes.ERROR);
+    }
+
+    private synchronized void sendRequestWithoutResponse(Command command) {
+        try {
+            outputStream.writeObject(command);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void close() {

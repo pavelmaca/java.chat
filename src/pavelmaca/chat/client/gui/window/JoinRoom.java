@@ -1,7 +1,7 @@
 package pavelmaca.chat.client.gui.window;
 
 import pavelmaca.chat.client.Lambdas;
-import pavelmaca.chat.client.model.Room;
+import pavelmaca.chat.share.model.RoomInfo;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,18 +13,18 @@ import java.util.ArrayList;
 public class JoinRoom extends Window {
     private JLabel errorLabel;
 
-    private JComboBox<Room.Pair> roomSelectBox;
+    private JComboBox<RoomInfo> roomSelectBox;
     private JLabel createRoomLabel;
     private JTextField createRoom;
 
     private JButton joinBtn;
 
-    private Room.Pair newRoom;
+    private RoomInfo newRoom;
 
-    public JoinRoom(ArrayList<Room.Pair> roomList) {
+    public JoinRoom(ArrayList<RoomInfo> roomList) {
         super("Join room");
 
-        newRoom = new Room.Pair(-1, "<add new>");
+        newRoom = new RoomInfo(-1, "<add new>");
         roomSelectBox.addItem(newRoom);
 
         roomList.forEach(r -> roomSelectBox.addItem(r));
@@ -76,16 +76,17 @@ public class JoinRoom extends Window {
 
     public void onJoinSubmit(Lambdas.Function1<Integer> callback) {
         joinBtn.addActionListener(e -> {
-            if (!roomSelectBox.getSelectedItem().equals(newRoom)) {
-                int roomId = ((Room.Pair) roomSelectBox.getSelectedItem()).id;
-                callback.apply(roomId);
+            RoomInfo selected = (RoomInfo) roomSelectBox.getSelectedItem();
+            if (selected.getId() != newRoom.getId()) {
+                callback.apply(selected.getId());
             }
         });
     }
 
     public void onNewRoomSubmit(Lambdas.Function1<String> callback) {
         joinBtn.addActionListener(e -> {
-            if (roomSelectBox.getSelectedItem().equals(newRoom)) {
+            RoomInfo selected = (RoomInfo) roomSelectBox.getSelectedItem();
+            if (selected.getId() == newRoom.getId()) {
                 callback.apply(createRoom.getText());
             }
         });

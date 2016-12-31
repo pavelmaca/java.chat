@@ -1,17 +1,16 @@
-package pavelmaca.chat.client.model;
+package pavelmaca.chat.server.entity;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Message implements Serializable {
+public class Message {
     protected Date timestamp;
     protected String content;
     protected User author;
 
-    public Message(String content, User author) {
+    public Message(int id, String content, User author) {
         this.content = content;
         this.author = author;
         timestamp = new Date();

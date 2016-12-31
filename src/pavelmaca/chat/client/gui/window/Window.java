@@ -1,5 +1,7 @@
 package pavelmaca.chat.client.gui.window;
 
+import pavelmaca.chat.client.Lambdas;
+
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -31,11 +33,11 @@ public abstract class Window {
         frame.setVisible(true);
     }
 
-    public void onWindowClose(Function<Void, Void> callback){
+    public void onWindowClose(Lambdas.Function0 callback){
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                callback.apply(null);
+                callback.apply();
             }
         });
     }

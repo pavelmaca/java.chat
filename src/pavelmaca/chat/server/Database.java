@@ -2,6 +2,7 @@ package pavelmaca.chat.server;
 
 
 
+import pavelmaca.chat.server.repository.MessageRepository;
 import pavelmaca.chat.server.repository.RoomRepository;
 import pavelmaca.chat.server.repository.UserRepository;
 
@@ -19,6 +20,7 @@ public class Database {
     // Repositories
     private UserRepository userRepository;
     private RoomRepository roomRepository;
+    private MessageRepository messageRepository;
 
     public Database(Properties properties) {
         connect(properties);
@@ -64,5 +66,12 @@ public class Database {
             roomRepository = new RoomRepository(connection, getUserRepository());
         }
         return roomRepository;
+    }
+
+    public MessageRepository getMessageRepository(){
+        if(messageRepository== null){
+            messageRepository = new MessageRepository(connection);
+        }
+        return messageRepository;
     }
 }

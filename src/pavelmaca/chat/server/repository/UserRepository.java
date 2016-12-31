@@ -1,6 +1,6 @@
 package pavelmaca.chat.server.repository;
 
-import pavelmaca.chat.client.model.User;
+import pavelmaca.chat.server.entity.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

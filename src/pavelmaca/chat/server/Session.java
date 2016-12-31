@@ -1,12 +1,17 @@
 package pavelmaca.chat.server;
 
-import pavelmaca.chat.client.model.Message;
-import pavelmaca.chat.client.model.Room;
-import pavelmaca.chat.client.model.User;
 import pavelmaca.chat.commands.Command;
 import pavelmaca.chat.commands.Status;
+import pavelmaca.chat.server.entity.Message;
+import pavelmaca.chat.server.entity.Room;
+import pavelmaca.chat.server.entity.User;
+import pavelmaca.chat.server.repository.MessageRepository;
 import pavelmaca.chat.server.repository.RoomRepository;
 import pavelmaca.chat.server.repository.UserRepository;
+import pavelmaca.chat.share.model.MessageInfo;
+import pavelmaca.chat.share.model.RoomInfo;
+import pavelmaca.chat.share.model.RoomStatus;
+import pavelmaca.chat.share.model.UserInfo;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,7 +19,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Set;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -33,15 +38,17 @@ public class Session implements Runnable {
 
     private UserRepository userRepository;
     private RoomRepository roomRepository;
+    private MessageRepository messageRepository;
 
-    private HashMap<Integer, RoomThread> roomList = new HashMap<>();
+    // private HashMap<Integer, RoomThread> roomList = new HashMap<>();
 
-    public Session(Socket clientSocket, RoomManager roomManager, UserRepository userRepository, RoomRepository roomRepository) {
+    public Session(Socket clientSocket, RoomManager roomManager, UserRepository userRepository, RoomRepository roomRepository, MessageRepository messageRepository) {
         this.state = States.NEW;
         this.clientSocket = clientSocket;
         this.roomManager = roomManager;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
+        this.messageRepository = messageRepository;
     }
 
     @Override
@@ -87,7 +94,7 @@ public class Session implements Runnable {
             case AUTHENTICATION:
                 handleAuthentication(command);
                 break;
-            case ROOM_GET_LIST:
+            case ROOM_GET_AVAILABLE_LIST:
                 handleRetriveAvalibleRoomList(command);
                 break;
             case ROOM_CREATE:
@@ -96,9 +103,11 @@ public class Session implements Runnable {
             case MESSAGE_NEW:
                 handleMessageReceiver(command);
                 break;
-            case USER_JOIN_ROOM:
+            case USER_ROOM_JOIN:
                 handleJoinRoom(command);
                 break;
+     /*       case GET_HISTORY:
+                handleGetHistory(command);*/
             default:
                 System.out.println("Uknown handler for command type" + command.type);
                 sendResponse(new Status(Status.Codes.ERROR));
@@ -130,9 +139,9 @@ public class Session implements Runnable {
     }
 
     protected void handleAuthentication(Command command) {
+        // TODO only one connection per user
         System.out.println("authentication request received");
 
-        // TODO check login credencials
         Status response = new Status(Status.Codes.OK);
 
         String username = command.getParam("username");
@@ -143,17 +152,42 @@ public class Session implements Runnable {
             sendResponse(new Status(Status.Codes.ERROR));
             return;
         }
-        response.setBody(user);
+
+        ArrayList<RoomStatus> activeRoomsStatus = new ArrayList<>();
+        ArrayList<Room> activeRooms = roomRepository.getActiveRooms(user);
+        activeRooms.stream().forEach(room -> {
+            activeRoomsStatus.add(getRoomStatus(room));
+        });
+
+
+        response.setBody(activeRoomsStatus);
 
         if (sendResponse(response)) {
             state = States.AUTHENTICATED;
         }
     }
 
+    private RoomStatus getRoomStatus(Room room) {
+        RoomThread roomThread = roomManager.joinRoomThread(room, user, this);
+        Set<User> activeUsers = roomThread.getConnectedUsers();
+
+        ArrayList<UserInfo> userInfos = new ArrayList<>();
+        activeUsers.forEach(user -> {
+            userInfos.add(user.getInfoModel());
+        });
+
+        RoomStatus roomStatus = new RoomStatus(room.getInfoModel(), userInfos);
+
+        ArrayList<MessageInfo> messageHistory = messageRepository.getHistory(room, 50);
+        messageHistory.stream().forEach(roomStatus::addMessage);
+
+        return roomStatus;
+    }
+
     protected void handleRetriveAvalibleRoomList(Command command) {
         System.out.println("room list request received");
 
-        ArrayList<Room.Pair> roomList = roomRepository.getAllAvailable(user);
+        ArrayList<RoomInfo> roomList = roomRepository.getAllAvailable(user);
         Status response = new Status(Status.Codes.OK);
         response.setBody(roomList);
         sendResponse(response);
@@ -166,11 +200,10 @@ public class Session implements Runnable {
         Room room = roomRepository.createRoom(roomName, user);
         roomRepository.joinRoom(room, user);
 
-        RoomThread roomThread = roomManager.joinRoomThread(room, user, this);
-        roomList.put(room.getId(), roomThread);
+        roomManager.joinRoomThread(room, user, this);
 
         Status response = new Status(Status.Codes.OK);
-        response.setBody(room);
+        response.setBody(getRoomStatus(room));
         sendResponse(response);
     }
 
@@ -180,12 +213,21 @@ public class Session implements Runnable {
         String text = command.getParam("text");
         int roomId = command.getParam("roomId");
 
-        System.out.println("from: " + user.getName() + " message: " + text + " room:" + roomId);
 
-       /* RoomThread roomThread = roomList.get(roomId);
-        if (roomThread != null) {
-            roomThread.recieveMessage(text, user);
-        }*/
+        if (!roomManager.isConnected(user, roomId)) {
+            // user is not connected to this room!
+            System.out.println("User is not connected to room " + roomId);
+            return;
+        }
+
+        RoomThread roomThread = roomManager.getThread(roomId);
+
+        Message message = messageRepository.save(text, roomThread.getRoom(), user);
+        if (message != null) {
+            roomThread.recieveMessage(message);
+        }
+
+        System.out.println("from: " + user.getName() + " message: " + text + " room:" + roomId);
     }
 
     protected void handleJoinRoom(Command command) {
@@ -194,12 +236,19 @@ public class Session implements Runnable {
         int roomId = command.getParam("roomId");
 
         Room room = roomRepository.joinRoom(roomId, user);
+        roomManager.joinRoomThread(room, user, this);
 
-        RoomThread roomThread = roomManager.joinRoomThread(room, user, this);
-        roomList.put(room.getId(), roomThread);
-
-        sendResponse(new Status(Status.Codes.OK));
+        Status response = new Status(Status.Codes.OK);
+        response.setBody(getRoomStatus(room));
+        sendResponse(response);
     }
+
+  /*  private void handleGetHistory(Command command){
+        ArrayList<Room.Status> roomHistoryList = roomRepository.getUserHistory(user);
+        Status response = new Status(Status.Codes.OK);
+        response.setBody(roomHistoryList);
+        sendResponse(response);
+    }*/
 
     public void sendDisconect() {
         sendCommand(new Command(Command.Types.CLOSE));
@@ -245,8 +294,7 @@ public class Session implements Runnable {
             e.printStackTrace();
         }
 
-        roomList.entrySet().parallelStream().forEach(integerRoomThreadEntry -> {
-            RoomThread roomThread = integerRoomThreadEntry.getValue();
+        roomManager.getAllConnectedThreads(user).parallelStream().forEach(roomThread -> {
             roomThread.disconnect(user);
             roomManager.purgeRoomThread(roomThread.getRoom());
         });
@@ -264,9 +312,10 @@ public class Session implements Runnable {
 
         AUTHENTICATED(new Command.Types[]{
                 Command.Types.ROOM_CREATE,
-                Command.Types.ROOM_GET_LIST,
-                Command.Types.USER_JOIN_ROOM,
+                Command.Types.ROOM_GET_AVAILABLE_LIST,
+                Command.Types.USER_ROOM_JOIN,
                 Command.Types.MESSAGE_NEW,
+                Command.Types.GET_HISTORY,
                 Command.Types.CLOSE,
         });
 

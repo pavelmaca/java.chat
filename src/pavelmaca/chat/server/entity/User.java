@@ -1,11 +1,11 @@
-package pavelmaca.chat.client.model;
+package pavelmaca.chat.server.entity;
 
-import java.io.Serializable;
+import pavelmaca.chat.share.model.UserInfo;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class User implements Serializable {
+public class User {
     protected String name;
     protected String password;
     private int id;
@@ -34,5 +34,9 @@ public class User implements Serializable {
 
     public int getId() {
         return id;
+    }
+
+    public UserInfo getInfoModel(){
+        return new UserInfo(id, name);
     }
 }

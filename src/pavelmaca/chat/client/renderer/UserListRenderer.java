@@ -1,7 +1,7 @@
 package pavelmaca.chat.client.renderer;
 
-import pavelmaca.chat.client.model.Room;
-import pavelmaca.chat.client.model.User;
+import pavelmaca.chat.server.entity.User;
+import pavelmaca.chat.share.model.UserInfo;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,14 +10,14 @@ import java.awt.*;
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class UserListRenderer extends JLabel implements ListCellRenderer<User>{
+public class UserListRenderer extends JLabel implements ListCellRenderer<UserInfo>{
 
     public UserListRenderer() {
         setOpaque(true);
     }
 
     @Override
-    public Component getListCellRendererComponent(JList<? extends User> list, User user, int index,
+    public Component getListCellRendererComponent(JList<? extends UserInfo> list, UserInfo user, int index,
                                                   boolean isSelected, boolean cellHasFocus) {
 
        /* String code = roomgetCode();

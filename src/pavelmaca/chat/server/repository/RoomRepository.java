@@ -1,7 +1,8 @@
 package pavelmaca.chat.server.repository;
 
-import pavelmaca.chat.client.model.Room;
-import pavelmaca.chat.client.model.User;
+import pavelmaca.chat.server.entity.Room;
+import pavelmaca.chat.server.entity.User;
+import pavelmaca.chat.share.model.RoomInfo;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -77,7 +78,7 @@ public class RoomRepository extends Repository {
         return null;
     }
 
-    public ArrayList<Room.Pair> getAllAvailable(User user) {
+    public ArrayList<RoomInfo> getAllAvailable(User user) {
         try {
             PreparedStatement statement = connection.prepareStatement("" +
                     "SELECT r.id, r.name FROM room r " +
@@ -88,11 +89,11 @@ public class RoomRepository extends Repository {
             statement.setInt(2, user.getId());
 
             ResultSet resultSet = statement.executeQuery();
-            ArrayList<Room.Pair> rooms = new ArrayList<>();
+            ArrayList<RoomInfo> rooms = new ArrayList<>();
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
                 String name = resultSet.getString("name");
-                rooms.add(new Room.Pair(id, name));
+                rooms.add(new RoomInfo(id, name));
             }
             return rooms;
         } catch (SQLException e) {
@@ -100,4 +101,32 @@ public class RoomRepository extends Repository {
         }
         return null;
     }
+
+    /**
+     * Get all currently joined rooms for user
+     *
+     * @param user
+     * @return
+     */
+    public ArrayList<Room> getActiveRooms(User user) {
+        ArrayList<Room> rooms = new ArrayList<>();
+        try {
+            PreparedStatement statement = connection.prepareStatement("" +
+                    "SELECT r.owner_id, r.id, r.name FROM room r " +
+                    "JOIN room_user ru ON ru.room_id = r.id AND ru.user_id = ? ");
+            statement.setInt(1, user.getId());
+
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                User owner = userRepository.findOneById(resultSet.getInt("owner_id"));
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                rooms.add(new Room(id, name, owner));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rooms;
+    }
+
 }

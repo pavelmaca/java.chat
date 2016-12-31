@@ -4,8 +4,9 @@ import pavelmaca.chat.client.gui.window.Chat;
 import pavelmaca.chat.client.gui.window.Connection;
 import pavelmaca.chat.client.gui.window.JoinRoom;
 import pavelmaca.chat.client.gui.window.Login;
-import pavelmaca.chat.client.model.Room;
-import pavelmaca.chat.client.model.User;
+import pavelmaca.chat.server.entity.User;
+import pavelmaca.chat.share.model.RoomInfo;
+import pavelmaca.chat.share.model.RoomStatus;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -72,16 +73,17 @@ public class Client implements Runnable {
     private void openAuthenticationWindow() {
         Login loginWindow = new Login();
         loginWindow.onSubmit((username, password) -> {
-            User user = session.authenticate(username, password);
-            if (user == null) {
+            ArrayList<RoomStatus> roomStatuInfos = session.authenticate(username, password);
+            if (roomStatuInfos == null) {
                 loginWindow.showError("Invalid credencials.");
+                return;
             }
 
             System.out.println("authenticated");
 
             loginWindow.close();
 
-            openChatWindow(user);
+            openChatWindow(roomStatuInfos, new User(0, username, password));
         });
         loginWindow.onCancel(() -> {
             loginWindow.close();
@@ -90,23 +92,25 @@ public class Client implements Runnable {
         });
     }
 
-    private void openChatWindow(User identity) {
+    private void openChatWindow(ArrayList<RoomStatus> roomStatuInfos, User identity) {
         if (identity == null) {
             openAuthenticationWindow();
             return;
         }
+        System.out.println("received identity: " + identity.getName());
 
-        System.out.println("recived identity: " + identity.getName());
-
-        Chat chatWindow = new Chat(identity);
-        chatWindow.onWindowClose((e) -> {
+        Chat chatWindow = new Chat(roomStatuInfos, identity);
+        chatWindow.onWindowClose(() -> {
             session.close();
-            return null;
         });
 
         chatWindow.onMessageSubmit((text, roomId) -> {
             session.sendMessage(text, roomId);
         });
+
+   /*     chatWindow.addRoomConnectListener(room -> {
+            session.connectRoom(room);
+        });*/
 
        /* chatWindow.onRoomSwitch(newRoom -> {
             // TODO lock ?
@@ -131,21 +135,21 @@ public class Client implements Runnable {
     }
 
     private void openJoinRoomWindow(Chat chatWindow) {
-        ArrayList<Room.Pair> roomList = session.getAvailableRoomList();
+        ArrayList<RoomInfo> roomList = session.getAvailableRoomList();
         JoinRoom joinRoomWindow = new JoinRoom(roomList);
         joinRoomWindow.onJoinSubmit(roomId -> {
-            Room room = session.joinRoom(roomId);
+            RoomStatus room = session.joinRoom(roomId);
             if (room != null) {
-                chatWindow.selectRoom(room);
+                chatWindow.addRoom(room, true);
                 joinRoomWindow.close();
             }
             // TODO room authentication
         });
 
         joinRoomWindow.onNewRoomSubmit(roomName -> {
-            Room room = session.createRoom(roomName);
+            RoomStatus room = session.createRoom(roomName);
             if (room != null) {
-                chatWindow.selectRoom(room);
+                chatWindow.addRoom(room, true);
                 joinRoomWindow.close();
             }
         });
