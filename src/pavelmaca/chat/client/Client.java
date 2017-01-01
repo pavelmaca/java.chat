@@ -4,6 +4,7 @@ import pavelmaca.chat.client.gui.window.Chat;
 import pavelmaca.chat.client.gui.window.Connection;
 import pavelmaca.chat.client.gui.window.JoinRoom;
 import pavelmaca.chat.client.gui.window.Login;
+import pavelmaca.chat.commands.Command;
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.RoomInfo;
 import pavelmaca.chat.share.model.RoomStatus;
@@ -101,6 +102,7 @@ public class Client implements Runnable {
 
         Chat chatWindow = new Chat(roomStatuInfos, identity);
         chatWindow.onWindowClose(() -> {
+            System.out.println("Closing chat window");
             session.close();
         });
 
@@ -108,30 +110,42 @@ public class Client implements Runnable {
             session.sendMessage(text, roomId);
         });
 
-   /*     chatWindow.addRoomConnectListener(room -> {
-            session.connectRoom(room);
-        });*/
+        //update listener
+        new Thread(() -> {
+            boolean running = true;
+            while (running) {
+                try {
+                    Command command = session.getUpdateQueue().takeFirst();
+                    switch (command.getType()) {
+                        case ROOM_USER_CONNECTED:
+                            chatWindow.userConnected(
+                                    command.getParam("roomId"),
+                                    command.getParam("user")
+                            );
+                            break;
+                        case ROOM_USER_DISCONNECTED:
+                            chatWindow.userDisconnected(
+                                    command.getParam("roomId"),
+                                    command.getParam("userId")
+                            );
+                            break;
+                        case MESSAGE_NEW:
+                            chatWindow.messageRecieved(command.getParam("message"));
+                            break;
+                        case CLOSE:
+                            running = false;
+                        default:
+                            System.out.println("Invalid command " + command.getType());
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
 
-       /* chatWindow.onRoomSwitch(newRoom -> {
-            // TODO lock ?
-            session.setCurrentRoom(newRoom);
-        });*/
+
 
         chatWindow.onRoomCreated(() -> openJoinRoomWindow(chatWindow));
-/*
-
-        chatWindow.onRoomLeave(roomId -> {
-            session.leaveRoom(roomId);
-        });
-
-        session.onRoomListUpdated(roomList -> {
-            chatWindow.updateRoomList(roomList);
-        });
-
-        session.onMessageRecived(text -> {
-            chatWindow.recieveMessage(text);
-        });*/
-
     }
 
     private void openJoinRoomWindow(Chat chatWindow) {

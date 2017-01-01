@@ -10,21 +10,67 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Session {
+public class Session implements Runnable {
 
     private Socket socket;
     private ObjectOutputStream outputStream = null;
     private ObjectInputStream inputStream = null;
+
+    private boolean running;
+
+    private ArrayBlockingQueue<Status> responseQueue = new ArrayBlockingQueue<>(1);
+    private LinkedBlockingDeque<Command> updateQueue = new LinkedBlockingDeque<>();
+
+    @Override
+    public void run() {
+        running = true;
+        while (running) {
+            try {
+                Object inputObject = inputStream.readObject();
+
+                if (inputObject instanceof Status) {
+                    responseQueue.put((Status) inputObject);
+                    //handleResponse((Status) inputObject);
+                } else {
+                    Command command = (Command) inputObject;
+                    System.out.println("Received coomand " + command.getType());
+                    updateQueue.putLast(command);
+                }
+            } catch (IOException | InterruptedException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public LinkedBlockingDeque<Command> getUpdateQueue() {
+        return updateQueue;
+    }
+
+    /*   protected void handleResponse(Status response){
+        String requestHash = response.getRequestHash();
+
+        Command command = requestQuee.get(handleResponse);
+        if(command == null){
+            return;
+        }
+
+        command.onResponse(response);
+    }*/
 
     public boolean connect(String serverIp, int serverPort) {
         try {
             socket = new Socket(serverIp, serverPort);
             outputStream = new ObjectOutputStream(socket.getOutputStream());
             inputStream = new ObjectInputStream(socket.getInputStream());
+
+            // start listening for incoming data
+            new Thread(this).start();
 
             // performe heandshake
             Command request = new Command(Command.Types.HAND_SHAKE);
@@ -85,12 +131,15 @@ public class Session {
         return null;
     }
 
-    private synchronized Status sendRequest(Command command) {
-        try {
-            outputStream.writeObject(command);
-            return (Status) inputStream.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+    private Status sendRequest(Command command) {
+        // prevent making more requests until response is processed
+        synchronized (outputStream) {
+            try {
+                outputStream.writeObject(command);
+                return responseQueue.take();
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         return new Status(Status.Codes.ERROR);
     }
@@ -104,25 +153,37 @@ public class Session {
     }
 
     public void close() {
-        Command command = new Command(Command.Types.CLOSE);
-        sendRequest(command);
+        running = false;
 
+        Command command = new Command(Command.Types.CLOSE);
+      //  sendRequest(command);
+
+        // unblock terminate update listener
+        try {
+            updateQueue.putFirst(command);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("c0");
         try {
             outputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("c1");
         try {
             inputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("c2");
         try {
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("c3");
     }
-
 
 }

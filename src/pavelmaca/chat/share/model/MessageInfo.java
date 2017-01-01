@@ -11,12 +11,14 @@ public class MessageInfo implements Serializable {
     private int authorId;
     private String authorName;
     private Date timestamp;
+    private int roomId;
 
-    public MessageInfo(String text, int authorId, Date timestamp, String authorName) {
+    public MessageInfo(String text, int authorId, Date timestamp, String authorName, int roomId) {
         this.text = text;
         this.authorId = authorId;
         this.timestamp = timestamp;
         this.authorName = authorName;
+        this.roomId = roomId;
     }
 
     public String getText() {
@@ -33,5 +35,9 @@ public class MessageInfo implements Serializable {
 
     public Date getTimestamp() {
         return timestamp;
+    }
+
+    public int getRoomId() {
+        return roomId;
     }
 }

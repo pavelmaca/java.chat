@@ -4,7 +4,6 @@ import pavelmaca.chat.client.Lambdas;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.function.Function;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -71,7 +70,10 @@ public class Login extends Window {
 
     public void onSubmit(Lambdas.Function2<String, String> callback) {
         connectBtn.addActionListener(e -> {
-            callback.apply(userName.getText(), password.getText());
+            String userNameText = userName.getText();
+            if (!userNameText.isEmpty()) {
+                callback.apply(userName.getText(), password.getText());
+            }
         });
     }
 

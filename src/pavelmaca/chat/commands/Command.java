@@ -20,33 +20,33 @@ public class Command implements Serializable {
         parameters.put(key, value);
     }
 
-    /*
-    public HashMap<String, Object> getParametrs() {
-        return parameters;
-    }
-    */
-
     public <R> R getParam(String key) {
         return (R) parameters.get(key);
     }
 
+    public Types getType() {
+        return type;
+    }
+
+    public boolean hasParam(String authorId) {
+        return parameters.containsKey(authorId);
+    }
+
     public enum Types {
-        // client outcoming
+        // client -> server
         HAND_SHAKE,
         AUTHENTICATION,
         ROOM_CREATE,
         USER_ROOM_JOIN,
-        USER_ROOM_CONNECT,
         MESSAGE_NEW,
         ROOM_GET_AVAILABLE_LIST,
-        GET_HISTORY,
         CLOSE,
 
-        // client incoming
+        // server -> client
         ROOM_NEW_MESSAGE,
-        ROOM_JOIN_USER,
-        ROOM_LEAVE_USER,
-        ROOM_CONNECT_USER,
-        ROOM_DISCONNECT_USER,
+        ROOM_USER_CONNECTED,
+        ROOM_USER_DISCONNECTED, DUMMY,
+      /*  ROOM_USER_JOINED,
+        ROOM_USER_LEAVE,*/
     }
 }

@@ -15,6 +15,8 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -25,6 +27,7 @@ public class Chat extends Window {
 
     final protected DefaultListModel<RoomStatus> roomListModel = new DefaultListModel<>();
     JList<RoomStatus> roomJList;
+    protected ArrayList<RoomStatus> roomStatuses = new ArrayList<>();
 
     //final protected DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
     JList<UserInfo> userJList;
@@ -66,13 +69,14 @@ public class Chat extends Window {
         super("chat room name");
         this.currentUser = currentUser;
 
-        roomStatus.forEach(statusUpdate -> {
+        roomStatuses = roomStatus;
+        roomStatuses.forEach(statusUpdate -> {
             addRoom(statusUpdate, false);
         });
         roomJList.setModel(roomListModel);
 
-        if (!roomStatus.isEmpty()) {
-            roomJList.setSelectedValue(roomStatus.get(0), true);
+        if (!roomStatuses.isEmpty()) {
+            roomJList.setSelectedValue(roomStatuses.get(0), true);
         }
 
         System.out.println("my identity is:" + currentUser.getName());
@@ -95,7 +99,10 @@ public class Chat extends Window {
             String text = message.getText();
             message.setText("");
             if (!text.isEmpty()) {
-                callback.apply(text, selectedRoom.getRoomInfo().getId());
+                int selectedRoomId = selectedRoom.getRoomInfo().getId();
+                callback.apply(text, selectedRoomId);
+                MessageInfo messageInfo = new MessageInfo(text, currentUser.getId(), new Date(), currentUser.getName(), selectedRoomId);
+                messageRecieved(messageInfo);
             }
         });
     }
@@ -117,13 +124,9 @@ public class Chat extends Window {
 
         roomJList.setSelectedValue(room, true);
 
-        DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
-        room.getActiveUsers().stream().forEach(userListModel::addElement);
-        userJList.setModel(userListModel);
+        updateUserList(room);
 
-        DefaultListModel<MessageInfo> chatListModel = new DefaultListModel<>();
-        room.getMessages().stream().forEach(chatListModel::addElement);
-        chatJList.setModel(chatListModel);
+        updateChatList(room);
     }
 
     public void addRoom(RoomStatus room, boolean setFocus) {
@@ -224,20 +227,60 @@ public class Chat extends Window {
         return panel;
     }
 
-   /* private DefaultListModel<Message> createDemoMessages(DefaultListModel<Message> listModel) {
-        for (int i = 0; i < 20; i++) {
-            User author;
-            switch (i % 3) {
-                case 0:
-                    author = currentUser;
-                    break;
-                default:
-                    author = userList.get(i % 3 + 2);
-                    break;
+    public void userConnected(int roomId, UserInfo userInfo) {
+        for (RoomStatus roomStatus : roomStatuses) {
+            if (roomStatus.getRoomInfo().getId() == roomId) {
+                roomStatus.getActiveUsers().add(userInfo);
+                if (roomJList.getSelectedValue().equals(roomStatus)) {
+                    updateUserList(roomStatus);
+                }
             }
-            listModel.addElement(new Message("Test message assssssssss sa sa sas as asasa s as safgdfgdf gfdgdg dg gdfg dfgdf gdfg gdg  " + i, author));
         }
+        ;
+    }
 
-        return listModel;
-    }*/
+    public void userDisconnected(int roomId, int userId) {
+        for (RoomStatus roomStatus : roomStatuses) {
+            if (roomStatus.getRoomInfo().getId() == roomId) {
+                // iterator to safly remove from array
+                Iterator<UserInfo> i = roomStatus.getActiveUsers().iterator();
+                while (i.hasNext()) {
+                    UserInfo userInfo = i.next();
+                    if (userInfo.getId() == userId) {
+                        i.remove();
+                        if (roomJList.getSelectedValue().equals(roomStatus)) {
+                            updateUserList(roomStatus);
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    private void updateUserList(RoomStatus room) {
+        DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
+        room.getActiveUsers().stream().forEach(userListModel::addElement);
+        userJList.setModel(userListModel);
+    }
+
+    private void updateChatList(RoomStatus room) {
+        DefaultListModel<MessageInfo> chatListModel = new DefaultListModel<>();
+        room.getMessages().stream().forEach(chatListModel::addElement);
+        chatJList.setModel(chatListModel);
+    }
+
+    public void messageRecieved(MessageInfo message) {
+        for (RoomStatus roomStatus : roomStatuses) {
+            if (roomStatus.getRoomInfo().getId() == message.getRoomId()) {
+                roomStatus.addMessage(message);
+                if (roomJList.getSelectedValue().equals(roomStatus)) {
+                    updateChatList(roomStatus);
+                }
+                break;
+            }
+        }
+    }
+
 }

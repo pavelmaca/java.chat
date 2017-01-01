@@ -57,8 +57,6 @@ public class Session implements Runnable {
             inputStream = new ObjectInputStream(clientSocket.getInputStream());
             outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 
-            // TODO add socket to room threads, for relaying new messages
-
             while (!clientSocket.isClosed()) {
                 try {
                     System.out.println("wait for next command");
@@ -106,16 +104,10 @@ public class Session implements Runnable {
             case USER_ROOM_JOIN:
                 handleJoinRoom(command);
                 break;
-     /*       case GET_HISTORY:
-                handleGetHistory(command);*/
             default:
                 System.out.println("Uknown handler for command type" + command.type);
                 sendResponse(new Status(Status.Codes.ERROR));
         }
-        // TODO send all connected rooms -> add user to all room threads
-
-        // TODO: klient posílá zprávu + místnost do která chce zprávu odeslat
-        // TODO musí proběhnout kontrola oprávnění
     }
 
     protected boolean sendResponse(Status response) {
@@ -243,24 +235,25 @@ public class Session implements Runnable {
         sendResponse(response);
     }
 
-  /*  private void handleGetHistory(Command command){
-        ArrayList<Room.Status> roomHistoryList = roomRepository.getUserHistory(user);
-        Status response = new Status(Status.Codes.OK);
-        response.setBody(roomHistoryList);
-        sendResponse(response);
-    }*/
-
     public void sendDisconect() {
         sendCommand(new Command(Command.Types.CLOSE));
     }
 
-    public void sendMessage(Message message) {
-        Command command = new Command(Command.Types.MESSAGE_NEW);
-        command.addParametr("message", message);
+  /*  public void sendUserConnected(int roomId, UserInfo userInfo) {
+        Command command = new Command(Command.Types.ROOM_USER_CONNECTED);
+        command.addParametr("room", roomId);
+        command.addParametr("user", userInfo);
         sendCommand(command);
     }
 
-    private void sendCommand(Command command) {
+    public void sendUserDisconnected(int roomId, UserInfo userInfo) {
+        Command command = new Command(Command.Types.ROOM_USER_DISCONNECTED);
+        command.addParametr("room", roomId);
+        command.addParametr("user", userInfo);
+        sendCommand(command);
+    }*/
+
+    public void sendCommand(Command command) {
         try {
             synchronized (outputStream) {
                 outputStream.writeObject(command);
@@ -272,7 +265,6 @@ public class Session implements Runnable {
 
     private void close() {
         System.out.println("closing session");
-        sendDisconect();
 
         try {
             if (inputStream != null)
@@ -315,7 +307,6 @@ public class Session implements Runnable {
                 Command.Types.ROOM_GET_AVAILABLE_LIST,
                 Command.Types.USER_ROOM_JOIN,
                 Command.Types.MESSAGE_NEW,
-                Command.Types.GET_HISTORY,
                 Command.Types.CLOSE,
         });
 

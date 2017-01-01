@@ -31,7 +31,6 @@ public class Server {
         roomManager = new RoomManager();
 
         try {
-            // TODO start in own thread, or not?
             // TODO exit command?
             ServerSocket serverSocket = new ServerSocket(port);
 
