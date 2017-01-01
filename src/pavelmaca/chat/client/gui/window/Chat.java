@@ -23,56 +23,25 @@ import java.util.Iterator;
  */
 public class Chat extends Window {
 
-    protected User currentUser;
+    private User currentUser;
 
-    final protected DefaultListModel<RoomStatus> roomListModel = new DefaultListModel<>();
-    JList<RoomStatus> roomJList;
-    protected ArrayList<RoomStatus> roomStatuses = new ArrayList<>();
-
-    //final protected DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
-    JList<UserInfo> userJList;
-
-    //final protected DefaultListModel<MessageInfo> chatListModel = new DefaultListModel<>();
-    JList<MessageInfo> chatJList;
-
+    private ArrayList<RoomStatus> roomStatuses = new ArrayList<>();
+    final private DefaultListModel<RoomStatus> roomListModel = new DefaultListModel<>();
 
     // GUI elements
-    JTextField message;
-    JButton sendBtn;
-
-    JButton joinRoom;
-
-  /*  protected void setupDemo() {
-        currentUser = new User(0, "Assassik", "123");
-
-        Random random = new Random(123456);
-
-        userList = new ArrayList<>();
-        for (int i = 0; i < 20; i++) {
-            userList.add(new User(0, "User " + i, "123"));
-        }
-
-        roomList = new ArrayList<>();
-        for (int i = 0; i < 7; i++) {
-            Room room = new Room(0, "room " + i, currentUser);
-            roomList.add(room);
-            int numOfUser = random.nextInt(userList.size()) + 1;
-            for (int j = 0; j < numOfUser; j++) {
-                room.addUser(userList.get(random.nextInt(userList.size())));
-            }
-        }
-
-
-    }*/
+    private JList<RoomStatus> roomJList;
+    private JList<UserInfo> userJList;
+    private JList<MessageInfo> chatJList;
+    private JTextField message;
+    private JButton sendBtn;
+    private JButton joinRoom;
 
     public Chat(ArrayList<RoomStatus> roomStatus, User currentUser) {
         super("chat room name");
         this.currentUser = currentUser;
 
         roomStatuses = roomStatus;
-        roomStatuses.forEach(statusUpdate -> {
-            addRoom(statusUpdate, false);
-        });
+        roomStatuses.forEach(statusUpdate -> addRoom(statusUpdate, false));
         roomJList.setModel(roomListModel);
 
         if (!roomStatuses.isEmpty()) {
@@ -108,12 +77,10 @@ public class Chat extends Window {
     }
 
     public void onRoomCreated(Lambdas.Function0 callback) {
-        joinRoom.addActionListener(e -> {
-            callback.apply();
-        });
+        joinRoom.addActionListener(e -> callback.apply());
     }
 
-    public void onRoomSelected() {
+    private void onRoomSelected() {
         if (roomJList.isSelectionEmpty()) {
             return;
         }
@@ -137,8 +104,7 @@ public class Chat extends Window {
 
     }
 
-
-    protected JPanel setupRoomList() {
+    private JPanel setupRoomList() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
@@ -164,7 +130,7 @@ public class Chat extends Window {
         return panel;
     }
 
-    protected JPanel setupUserList() {
+    private JPanel setupUserList() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 10));
@@ -180,7 +146,7 @@ public class Chat extends Window {
         return panel;
     }
 
-    protected JPanel setupChat() {
+    private JPanel setupChat() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
@@ -200,8 +166,6 @@ public class Chat extends Window {
              */
             @Override
             public void componentResized(ComponentEvent e) {
-                // next line possible if list is of type JXList
-                //roomList.invalidateCellSizeCache();
                 // for core: force cache invalidation by temporarily setting fixed height
                 chatJList.setFixedCellHeight(10);
                 chatJList.setFixedCellHeight(-1);
@@ -242,7 +206,7 @@ public class Chat extends Window {
     public void userDisconnected(int roomId, int userId) {
         for (RoomStatus roomStatus : roomStatuses) {
             if (roomStatus.getRoomInfo().getId() == roomId) {
-                // iterator to safly remove from array
+                // iterator to safely remove from array
                 Iterator<UserInfo> i = roomStatus.getActiveUsers().iterator();
                 while (i.hasNext()) {
                     UserInfo userInfo = i.next();
@@ -261,13 +225,13 @@ public class Chat extends Window {
 
     private void updateUserList(RoomStatus room) {
         DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
-        room.getActiveUsers().stream().forEach(userListModel::addElement);
+        room.getActiveUsers().forEach(userListModel::addElement);
         userJList.setModel(userListModel);
     }
 
     private void updateChatList(RoomStatus room) {
         DefaultListModel<MessageInfo> chatListModel = new DefaultListModel<>();
-        room.getMessages().stream().forEach(chatListModel::addElement);
+        room.getMessages().forEach(chatListModel::addElement);
         chatJList.setModel(chatListModel);
     }
 

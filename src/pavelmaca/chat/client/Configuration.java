@@ -12,10 +12,6 @@ public class Configuration {
     private static String configFile = "client.properties";
 
     public static void saveConfig(Properties properties) {
-      /*  Properties properties = new Properties();
-        properties.setProperty("host", serverIp);
-        properties.setProperty("port", String.valueOf(serverPort));*/
-
         try {
             FileOutputStream outputStream = new FileOutputStream(configFile);
             properties.store(outputStream, null);

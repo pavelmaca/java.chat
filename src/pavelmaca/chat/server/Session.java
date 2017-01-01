@@ -34,13 +34,11 @@ public class Session implements Runnable {
     private ObjectInputStream inputStream = null;
     private ObjectOutputStream outputStream = null;
 
-    RoomManager roomManager;
+    private RoomManager roomManager;
 
     private UserRepository userRepository;
     private RoomRepository roomRepository;
     private MessageRepository messageRepository;
-
-    // private HashMap<Integer, RoomThread> roomList = new HashMap<>();
 
     public Session(Socket clientSocket, RoomManager roomManager, UserRepository userRepository, RoomRepository roomRepository, MessageRepository messageRepository) {
         this.state = States.NEW;
@@ -76,7 +74,7 @@ public class Session implements Runnable {
     }
 
     private void processCommand(Command command) {
-        if (!Arrays.stream(state.getAllowedCommands()).anyMatch(x -> x == command.type)) {
+        if (Arrays.stream(state.getAllowedCommands()).noneMatch(x -> x == command.type)) {
             System.out.println("no access to command: " + command.type);
             sendResponse(new Status(Status.Codes.ERROR));
             return;
@@ -110,7 +108,7 @@ public class Session implements Runnable {
         }
     }
 
-    protected boolean sendResponse(Status response) {
+    private boolean sendResponse(Status response) {
         try {
             synchronized (outputStream) {
                 outputStream.writeObject(response);
@@ -130,7 +128,7 @@ public class Session implements Runnable {
         }
     }
 
-    protected void handleAuthentication(Command command) {
+    private void handleAuthentication(Command command) {
         // TODO only one connection per user
         System.out.println("authentication request received");
 
@@ -147,7 +145,7 @@ public class Session implements Runnable {
 
         ArrayList<RoomStatus> activeRoomsStatus = new ArrayList<>();
         ArrayList<Room> activeRooms = roomRepository.getActiveRooms(user);
-        activeRooms.stream().forEach(room -> {
+        activeRooms.forEach(room -> {
             activeRoomsStatus.add(getRoomStatus(room));
         });
 
@@ -171,12 +169,12 @@ public class Session implements Runnable {
         RoomStatus roomStatus = new RoomStatus(room.getInfoModel(), userInfos);
 
         ArrayList<MessageInfo> messageHistory = messageRepository.getHistory(room, 50);
-        messageHistory.stream().forEach(roomStatus::addMessage);
+        messageHistory.forEach(roomStatus::addMessage);
 
         return roomStatus;
     }
 
-    protected void handleRetriveAvalibleRoomList(Command command) {
+    private void handleRetriveAvalibleRoomList(Command command) {
         System.out.println("room list request received");
 
         ArrayList<RoomInfo> roomList = roomRepository.getAllAvailable(user);
@@ -185,7 +183,7 @@ public class Session implements Runnable {
         sendResponse(response);
     }
 
-    protected void handleCreateRoom(Command command) {
+    private void handleCreateRoom(Command command) {
         System.out.println("new room request received");
 
         String roomName = command.getParam("name");
@@ -199,7 +197,7 @@ public class Session implements Runnable {
         sendResponse(response);
     }
 
-    protected void handleMessageReceiver(Command command) {
+    private void handleMessageReceiver(Command command) {
         System.out.println("new message received");
 
         String text = command.getParam("text");
@@ -222,7 +220,7 @@ public class Session implements Runnable {
         System.out.println("from: " + user.getName() + " message: " + text + " room:" + roomId);
     }
 
-    protected void handleJoinRoom(Command command) {
+    private void handleJoinRoom(Command command) {
         System.out.println("join room request recieved");
 
         int roomId = command.getParam("roomId");
@@ -238,20 +236,6 @@ public class Session implements Runnable {
     public void sendDisconect() {
         sendCommand(new Command(Command.Types.CLOSE));
     }
-
-  /*  public void sendUserConnected(int roomId, UserInfo userInfo) {
-        Command command = new Command(Command.Types.ROOM_USER_CONNECTED);
-        command.addParametr("room", roomId);
-        command.addParametr("user", userInfo);
-        sendCommand(command);
-    }
-
-    public void sendUserDisconnected(int roomId, UserInfo userInfo) {
-        Command command = new Command(Command.Types.ROOM_USER_DISCONNECTED);
-        command.addParametr("room", roomId);
-        command.addParametr("user", userInfo);
-        sendCommand(command);
-    }*/
 
     public void sendCommand(Command command) {
         try {

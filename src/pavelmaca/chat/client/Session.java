@@ -36,7 +36,6 @@ public class Session implements Runnable {
 
                 if (inputObject instanceof Status) {
                     responseQueue.put((Status) inputObject);
-                    //handleResponse((Status) inputObject);
                 } else {
                     Command command = (Command) inputObject;
                     System.out.println("Received coomand " + command.getType());
@@ -51,17 +50,6 @@ public class Session implements Runnable {
     public LinkedBlockingDeque<Command> getUpdateQueue() {
         return updateQueue;
     }
-
-    /*   protected void handleResponse(Status response){
-        String requestHash = response.getRequestHash();
-
-        Command command = requestQuee.get(handleResponse);
-        if(command == null){
-            return;
-        }
-
-        command.onResponse(response);
-    }*/
 
     public boolean connect(String serverIp, int serverPort) {
         try {
@@ -155,35 +143,32 @@ public class Session implements Runnable {
     public void close() {
         running = false;
 
-        Command command = new Command(Command.Types.CLOSE);
-      //  sendRequest(command);
-
         // unblock terminate update listener
         try {
+            Command command = new Command(Command.Types.CLOSE);
+            //sendRequest(command);
             updateQueue.putFirst(command);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        System.out.println("c0");
         try {
             outputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("c1");
+
         try {
             inputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("c2");
+
         try {
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("c3");
     }
 
 }

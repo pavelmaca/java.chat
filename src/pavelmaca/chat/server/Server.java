@@ -10,7 +10,6 @@ import java.util.Properties;
  */
 public class Server {
     private static Database database;
-    private static RoomManager roomManager;
 
     public static void main(String[] args) {
 
@@ -21,30 +20,31 @@ public class Server {
             return;
         }
 
-        // start listenning for clients
+        // start listening for clients
         int listeningPort = Configurator.getListeningPort();
         startListening(listeningPort);
 
     }
 
     private static void startListening(int port) {
-        roomManager = new RoomManager();
-
+        RoomManager roomManager = new RoomManager();
         try {
-            // TODO exit command?
             ServerSocket serverSocket = new ServerSocket(port);
 
             System.out.println("Listening on port " + port + "...");
             while (true) {
+                //accept a connection;
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("client connected");
-                //accept a connection;
+
                 //create a thread to deal with the client;
                 new Thread(new Session(clientSocket, roomManager, database.getUserRepository(), database.getRoomRepository(), database.getMessageRepository())).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        database.closeConnection();
     }
 
 

@@ -61,9 +61,7 @@ public class Connection extends Window {
     }
 
     public void onSubmit(Lambdas.Function3<String, Integer, Boolean> callback) {
-        connectBtn.addActionListener(e -> {
-            callback.apply(serverIP.getText(), Integer.parseInt(serverPort.getText()), saveCheckBox.isSelected());
-        });
+        connectBtn.addActionListener(e -> callback.apply(serverIP.getText(), Integer.parseInt(serverPort.getText()), saveCheckBox.isSelected()));
     }
 
     public void setDefaults(String host, String port, boolean save) {
@@ -77,25 +75,4 @@ public class Connection extends Window {
         errorLabel.setVisible(true);
         frame.pack();
     }
-
-   /* protected void setupConnection(String serverIp, int serverPort, boolean saveConfig) {
-        boolean connected = client.connect(serverIp, serverPort);
-        if (connected) {
-            if (saveConfig) {
-                saveConfig(serverIp, serverPort);
-            } else {
-                try {
-                    Files.delete(Paths.get(configFile));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-        } else {
-            errorLabel.setText("Can't connect to server.");
-            errorLabel.setVisible(true);
-            frame.pack();
-        }
-    }*/
-
 }
