@@ -15,7 +15,6 @@ public class Login extends Window {
     private JLabel passwordLabel;
     private JButton connectBtn;
     private JButton cancelBtn;
-    private JCheckBox saveCheckBox;
 
     JLabel errorLabel;
 
@@ -39,9 +38,6 @@ public class Login extends Window {
 
         password = new JTextField();
         panel.add(password);
-
-        saveCheckBox = new JCheckBox("Remember me");
-        panel.add(saveCheckBox);
 
         errorLabel = new JLabel("");
         errorLabel.setVisible(false);
