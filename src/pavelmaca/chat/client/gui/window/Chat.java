@@ -12,6 +12,7 @@ import pavelmaca.chat.share.model.UserInfo;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
@@ -63,17 +64,23 @@ public class Chat extends Window {
     }
 
     public void onMessageSubmit(Function2<String, Integer> callback) {
-        sendBtn.addActionListener(e -> {
-            RoomStatus selectedRoom = roomJList.getSelectedValue();
-            String text = message.getText();
-            message.setText("");
-            if (!text.isEmpty()) {
-                int selectedRoomId = selectedRoom.getRoomInfo().getId();
-                callback.apply(text, selectedRoomId);
-                MessageInfo messageInfo = new MessageInfo(text, currentUser.getId(), new Date(), currentUser.getName(), selectedRoomId);
-                messageRecieved(messageInfo);
+        Action action = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                RoomStatus selectedRoom = roomJList.getSelectedValue();
+                String text = message.getText();
+                message.setText("");
+                if (!text.isEmpty()) {
+                    int selectedRoomId = selectedRoom.getRoomInfo().getId();
+                    callback.apply(text, selectedRoomId);
+                    MessageInfo messageInfo = new MessageInfo(text, currentUser.getId(), new Date(), currentUser.getName(), selectedRoomId);
+                    messageRecieved(messageInfo);
+                }
             }
-        });
+        };
+
+        message.addActionListener(action);
+        sendBtn.addActionListener(action);
     }
 
     public void onRoomCreated(Lambdas.Function0 callback) {
