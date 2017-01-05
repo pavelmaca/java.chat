@@ -72,6 +72,7 @@ public class JoinRoom extends Window {
 
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         frame.getContentPane().add(buttonPane, BorderLayout.PAGE_END);
+        frame.pack();
     }
 
     public void onJoinSubmit(Lambdas.Function1<Integer> callback) {

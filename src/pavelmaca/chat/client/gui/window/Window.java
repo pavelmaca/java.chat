@@ -32,7 +32,7 @@ public abstract class Window {
         frame.setVisible(true);
     }
 
-    public void onWindowClose(Lambdas.Function0 callback){
+    public void addWindowsCloseListener(Lambdas.Function0 callback){
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {

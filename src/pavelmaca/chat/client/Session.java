@@ -140,6 +140,10 @@ public class Session implements Runnable {
         }
     }
 
+    public void logout(){
+        sendRequestWithoutResponse(new Request(Request.Types.LOGOUT));
+    }
+
     public void close() {
         running = false;
 

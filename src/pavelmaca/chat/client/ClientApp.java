@@ -24,9 +24,9 @@ public class ClientApp implements Runnable {
 
     public static void main(String[] args) {
         try {
-           // WebLookAndFeel.install ();
-            UIManager.setLookAndFeel ( new WebLookAndFeel () );
-          //  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            // WebLookAndFeel.install ();
+            UIManager.setLookAndFeel(new WebLookAndFeel());
+            //  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             SwingUtilities.invokeLater(new ClientApp());
         } catch (Throwable e) {
             e.printStackTrace();
@@ -94,6 +94,7 @@ public class ClientApp implements Runnable {
             session.close();
             openConnectionWindow();
         });
+
     }
 
     private void openChatWindow(ArrayList<RoomStatus> roomStatuInfos, User identity) {
@@ -101,62 +102,45 @@ public class ClientApp implements Runnable {
             openAuthenticationWindow();
             return;
         }
-        System.out.println("received identity: " + identity.getName());
 
         Chat chatWindow = new Chat(roomStatuInfos, identity);
-        chatWindow.onWindowClose(() -> {
+        chatWindow.addWindowsCloseListener((isLogout) -> {
             System.out.println("Closing chat window");
-            session.close();
+            if (isLogout) {
+                session.logout();
+            } else {
+                session.close();
+            }
         });
 
         chatWindow.onMessageSubmit((text, roomId) -> {
             session.sendMessage(text, roomId);
         });
 
+        chatWindow.setDisconnectListener(() -> {
+            chatWindow.close();
+            openConnectionWindow();
+        });
+
+        chatWindow.setLogoutListener(() -> {
+            chatWindow.close();
+            openAuthenticationWindow();
+        });
+
+        //  System.out.println("event thread: " + SwingUtilities.isEventDispatchThread());
+
         //update listener
-        new Thread(() -> {
-            boolean running = true;
-            while (running) {
-                try {
-                    System.out.println("event thred: " +
-                            SwingUtilities.isEventDispatchThread());
-                    synchronized (chatWindow) {
-                        Request request = session.getUpdateQueue().takeFirst();
-                        switch (request.getType()) {
-                            case ROOM_USER_CONNECTED:
-                                chatWindow.userConnected(
-                                        request.getParam("roomId"),
-                                        request.getParam("user")
-                                );
-                                break;
-                            case ROOM_USER_DISCONNECTED:
-                                chatWindow.userDisconnected(
-                                        request.getParam("roomId"),
-                                        request.getParam("userId")
-                                );
-                                break;
-                            case MESSAGE_NEW:
-                                chatWindow.messageRecieved(request.getParam("message"));
-                                break;
-                            case CLOSE:
-                                running = false;
-                            default:
-                                System.out.println("Invalid request " + request.getType());
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }).start();
-
+        new Thread(new GUIRequestListener(chatWindow, session)).start();
 
         chatWindow.onRoomCreated(() -> openJoinRoomWindow(chatWindow));
+
     }
 
     private void openJoinRoomWindow(Chat chatWindow) {
         ArrayList<RoomInfo> roomList = session.getAvailableRoomList();
+        System.out.println("event thred: " +
+                SwingUtilities.isEventDispatchThread());
+
         JoinRoom joinRoomWindow = new JoinRoom(roomList);
         joinRoomWindow.onJoinSubmit(roomId -> {
             RoomStatus room = session.joinRoom(roomId);
@@ -174,5 +158,6 @@ public class ClientApp implements Runnable {
                 joinRoomWindow.close();
             }
         });
+
     }
 }

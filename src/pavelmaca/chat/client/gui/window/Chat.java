@@ -11,10 +11,9 @@ import pavelmaca.chat.share.model.RoomStatus;
 import pavelmaca.chat.share.model.UserInfo;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -37,8 +36,12 @@ public class Chat extends Window {
     private JButton sendBtn;
     private JButton joinRoom;
 
+    private Lambdas.Function0 disconnectListener;
+    private Lambdas.Function0 logoutListener;
+    private boolean closingForLogout = false;
+
     public Chat(ArrayList<RoomStatus> roomStatus, User currentUser) {
-        super("chat room name");
+        super("Chat");
         this.currentUser = currentUser;
 
         roomStatuses = roomStatus;
@@ -58,9 +61,12 @@ public class Chat extends Window {
         frame.setMinimumSize(new Dimension(450, 300));
         Container contentPane = frame.getContentPane();
 
+        setupHeaderMenu();
+
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 setupRoomList(), setupChat());
         contentPane.add(splitPane, BorderLayout.CENTER);
+
 
 
     /*    contentPane.setLayout(new BorderLayout());
@@ -100,6 +106,9 @@ public class Chat extends Window {
 
         RoomStatus room = roomJList.getSelectedValue();
 
+        //change window title to room name
+        frame.setTitle(room.getRoomInfo().getName());
+
         System.out.println("selected room " + room.getRoomInfo().getId());
 
         roomJList.setSelectedValue(room, true);
@@ -117,6 +126,29 @@ public class Chat extends Window {
 
     }
 
+    private void setupHeaderMenu() {
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu server = new JMenu("Server");
+        menuBar.add(server);
+
+        JMenuItem disconnect = new JMenuItem("Disconnect");
+        disconnect.addActionListener(e -> this.performDisconnect());
+        server.add(disconnect);
+
+        JMenu user = new JMenu("User");
+        menuBar.add(user);
+
+        JMenuItem changePassword = new JMenuItem("Change password");
+        user.add(changePassword);
+
+        JMenuItem logout = new JMenuItem("Logout");
+        logout.addActionListener(e -> this.performLogout());
+        user.add(logout);
+
+        frame.setJMenuBar(menuBar);
+    }
+
     private JPanel setupRoomList() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -125,9 +157,10 @@ public class Chat extends Window {
         //create the list
         roomJList = new JList<>();
         roomJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        roomJList.setFocusable(false);
         panel.add(new JScrollPane(roomJList), BorderLayout.CENTER);
 
-        roomJList.setFixedCellHeight(25);
+        //roomJList.setFixedCellHeight(25);
         roomJList.setFixedCellWidth(100);
         roomJList.setCellRenderer(new RoomListRenderer());
 
@@ -139,6 +172,9 @@ public class Chat extends Window {
 
         joinRoom = new JButton("Join room");
         panel.add(joinRoom, BorderLayout.PAGE_END);
+
+        TitledBorder title = BorderFactory.createTitledBorder("Room list");
+        panel.setBorder(title);
 
         Dimension minimumSize = new Dimension(150, 25);
         roomJList.setMinimumSize(minimumSize);
@@ -153,11 +189,15 @@ public class Chat extends Window {
         panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 10));
 
         userJList = new JList<>();
+        userJList.setFocusable(false);
         panel.add(new JScrollPane(userJList), BorderLayout.CENTER);
 
         userJList.setFixedCellHeight(25);
         userJList.setFixedCellWidth(100);
         userJList.setCellRenderer(new UserListRenderer());
+
+        TitledBorder title = BorderFactory.createTitledBorder("Active users");
+        panel.setBorder(title);
 
         Dimension minimumSize = new Dimension(120, 25);
         userJList.setMinimumSize(minimumSize);
@@ -273,6 +313,32 @@ public class Chat extends Window {
                 break;
             }
         }
+    }
+
+    public void setDisconnectListener(Lambdas.Function0 callback) {
+        disconnectListener = callback;
+    }
+
+    public void performDisconnect() {
+        disconnectListener.apply();
+    }
+
+    public void setLogoutListener(Lambdas.Function0 callback) {
+        logoutListener = callback;
+    }
+
+    public void performLogout() {
+        closingForLogout = true;
+        logoutListener.apply();
+    }
+
+    public void addWindowsCloseListener(Lambdas.Function1<Boolean> callback) {
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                callback.apply(closingForLogout);
+            }
+        });
     }
 
 }

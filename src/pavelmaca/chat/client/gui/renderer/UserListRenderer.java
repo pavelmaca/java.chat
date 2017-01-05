@@ -26,13 +26,15 @@ public class UserListRenderer extends JLabel implements ListCellRenderer<UserInf
         setText(user.getName());
         setBorder(new EmptyBorder(5,10, 5, 10)); // padding
 
-        if (isSelected) {
+        setBackground(list.getBackground());
+        setForeground(list.getForeground());
+      /*  if (isSelected) {
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());
         } else {
             setBackground(list.getBackground());
             setForeground(list.getForeground());
-        }
+        }*/
 
         return this;
     }

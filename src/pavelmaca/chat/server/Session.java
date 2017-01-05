@@ -61,7 +61,9 @@ public class Session implements Runnable {
         requestHandlers.put(Request.Types.ROOM_CREATE, this::handleCreateRoom);
         requestHandlers.put(Request.Types.MESSAGE_NEW, this::handleMessageReceiver);
         requestHandlers.put(Request.Types.USER_ROOM_JOIN, this::handleJoinRoom);
+        requestHandlers.put(Request.Types.LOGOUT, this::handleLogout);
     }
+
 
     @Override
     public void run() {
@@ -233,6 +235,14 @@ public class Session implements Runnable {
         sendResponse(response);
     }
 
+    private void handleLogout(Request request) {
+        state = States.GUEST;
+        roomManager.getAllConnectedThreads(user).parallelStream().forEach(roomThread -> {
+            roomThread.disconnect(user);
+            roomManager.purgeRoomThread(roomThread.getRoom());
+        });
+    }
+
     public void sendDisconect() {
         sendCommand(new Request(Request.Types.CLOSE));
     }
@@ -292,6 +302,7 @@ public class Session implements Runnable {
                 Request.Types.USER_ROOM_JOIN,
                 Request.Types.MESSAGE_NEW,
                 Request.Types.CLOSE,
+                Request.Types.LOGOUT,
         });
 
         protected Request.Types[] allowedCommands;
