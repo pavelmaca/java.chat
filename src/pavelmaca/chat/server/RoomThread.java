@@ -1,6 +1,6 @@
 package pavelmaca.chat.server;
 
-import pavelmaca.chat.commands.Command;
+import pavelmaca.chat.share.comunication.Request;
 import pavelmaca.chat.server.entity.Message;
 import pavelmaca.chat.server.entity.Room;
 import pavelmaca.chat.server.entity.User;
@@ -16,23 +16,23 @@ public class RoomThread implements Runnable {
 
     private HashMap<User, Session> activeUsers = new HashMap<>();
 
-    private LinkedBlockingDeque<Command> commandQueue = new LinkedBlockingDeque<>();
+    private LinkedBlockingDeque<Request> requestQueue = new LinkedBlockingDeque<>();
     private Room room;
 
     private boolean running = false;
-    final private static Command dummy = new Command(Command.Types.DUMMY);
+    final private static Request dummy = new Request(Request.Types.DUMMY);
 
     public RoomThread(Room room) {
         this.room = room;
     }
 
-    public void recieveMessage(Message message) {
+    public void receiveMessage(Message message) {
         try {
             System.out.println("room " + room.getId() + " received message " + message.getContent());
-            Command command = new Command(Command.Types.MESSAGE_NEW);
-            command.addParametr("message", message.getInfoModel());
-            command.addParametr("authorId", message.getAuthor().getId());
-            commandQueue.putLast(command);
+            Request request = new Request(Request.Types.MESSAGE_NEW);
+            request.addParameter("message", message.getInfoModel());
+            request.addParameter("authorId", message.getAuthor().getId());
+            requestQueue.putLast(request);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -53,12 +53,12 @@ public class RoomThread implements Runnable {
     public void connect(User user, Session session) {
         synchronized (activeUsers) {
             System.out.println("user " + user.getName() + " connected to room " + room.getId());
-            Command command = new Command(Command.Types.ROOM_USER_CONNECTED);
-            command.addParametr("roomId", room.getId());
-            command.addParametr("user", user.getInfoModel());
-            command.addParametr("authorId", user.getId());
+            Request request = new Request(Request.Types.ROOM_USER_CONNECTED);
+            request.addParameter("roomId", room.getId());
+            request.addParameter("user", user.getInfoModel());
+            request.addParameter("authorId", user.getId());
             try {
-                commandQueue.putLast(command);
+                requestQueue.putLast(request);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -75,12 +75,12 @@ public class RoomThread implements Runnable {
     public void disconnect(User user) {
         synchronized (activeUsers) {
             System.out.println("user " + user.getName() + " disconnected from room " + room.getId());
-            Command command = new Command(Command.Types.ROOM_USER_DISCONNECTED);
-            command.addParametr("roomId", room.getId());
-            command.addParametr("userId", user.getId());
-            command.addParametr("authorId", user.getId());
+            Request request = new Request(Request.Types.ROOM_USER_DISCONNECTED);
+            request.addParameter("roomId", room.getId());
+            request.addParameter("userId", user.getId());
+            request.addParameter("authorId", user.getId());
             try {
-                commandQueue.putLast(command);
+                requestQueue.putLast(request);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -101,11 +101,11 @@ public class RoomThread implements Runnable {
     }
 
     /**
-     * Stop current thread by pushing dummy message to quee
+     * Stop current thread by pushing dummy message to queue
      */
     private void stopThread() {
         try {
-            commandQueue.putLast(dummy);
+            requestQueue.putLast(dummy);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -116,17 +116,16 @@ public class RoomThread implements Runnable {
         running = true;
         System.out.println("Starting thread for room " + room.getId());
         while (!activeUsers.isEmpty()) {
-            System.out.println("running room thread" + Thread.currentThread().getId());
             try {
-                Command command = commandQueue.takeFirst();
-                if (command.equals(dummy)) {
+                Request request = requestQueue.takeFirst();
+                if (request.equals(dummy)) {
                     continue;
                 }
                 // send message in parallel thread to all users
                 synchronized (activeUsers) {
                     activeUsers.entrySet().parallelStream().forEach(e -> {
-                        if (e.getKey().getId() != (Integer) command.getParam("authorId")) {
-                            e.getValue().sendCommand(command);
+                        if (e.getKey().getId() != (Integer) request.getParam("authorId")) {
+                            e.getValue().sendCommand(request);
                         }
                     });
                 }

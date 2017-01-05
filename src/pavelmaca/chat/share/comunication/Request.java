@@ -7,15 +7,16 @@ import java.util.HashMap;
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class Request implements Serializable {
-    private HashMap<String, Object> parameters;
-    Code code;
+    public Types type;
 
-    public Request(Code code) {
-        this.code = code;
+    private HashMap<String, Object> parameters;
+
+    public Request(Types type) {
+        this.type = type;
         parameters = new HashMap<>();
     }
 
-    public void addParametr(String key, Object value) {
+    public void addParameter(String key, Object value) {
         parameters.put(key, value);
     }
 
@@ -23,15 +24,28 @@ public class Request implements Serializable {
         return (R) parameters.get(key);
     }
 
-    public enum Code {
+    public Types getType() {
+        return type;
+    }
+
+    public boolean hasParam(String authorId) {
+        return parameters.containsKey(authorId);
+    }
+
+    public enum Types {
+        // client -> server
         HAND_SHAKE,
         AUTHENTICATION,
         ROOM_CREATE,
-        JOIN_ROOM,
+        USER_ROOM_JOIN,
         MESSAGE_NEW,
         ROOM_GET_AVAILABLE_LIST,
-        CLOSE;
+        CLOSE,
+
+        // server -> client
+        ROOM_USER_CONNECTED,
+        ROOM_USER_DISCONNECTED, DUMMY,
+      /*  ROOM_USER_JOINED,
+        ROOM_USER_LEAVE,*/
     }
 }
-
-

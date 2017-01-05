@@ -1,12 +1,10 @@
 package pavelmaca.chat.client.gui.window;
 
-import pavelmaca.chat.client.Lambdas;
-import pavelmaca.chat.share.model.MessageInfo;
+import pavelmaca.chat.share.Lambdas;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.function.Function;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>

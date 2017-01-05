@@ -1,7 +1,9 @@
 package pavelmaca.chat.server;
 
-import pavelmaca.chat.commands.Command;
-import pavelmaca.chat.commands.Status;
+import pavelmaca.chat.share.Lambdas;
+import pavelmaca.chat.share.comunication.ErrorResponse;
+import pavelmaca.chat.share.comunication.Request;
+import pavelmaca.chat.share.comunication.Response;
 import pavelmaca.chat.server.entity.Message;
 import pavelmaca.chat.server.entity.Room;
 import pavelmaca.chat.server.entity.User;
@@ -19,6 +21,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Set;
 
 /**
@@ -40,6 +43,8 @@ public class Session implements Runnable {
     private RoomRepository roomRepository;
     private MessageRepository messageRepository;
 
+    private HashMap<Request.Types, Lambdas.Function1<Request>> requestHandlers = new HashMap<>();
+
     public Session(Socket clientSocket, RoomManager roomManager, UserRepository userRepository, RoomRepository roomRepository, MessageRepository messageRepository) {
         this.state = States.NEW;
         this.clientSocket = clientSocket;
@@ -47,6 +52,15 @@ public class Session implements Runnable {
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
         this.messageRepository = messageRepository;
+
+        // Setup handlers
+        requestHandlers.put(Request.Types.HAND_SHAKE, this::handleHandShake);
+        requestHandlers.put(Request.Types.AUTHENTICATION, this::handleAuthentication);
+        requestHandlers.put(Request.Types.CLOSE, request -> this.closeSession());
+        requestHandlers.put(Request.Types.ROOM_GET_AVAILABLE_LIST, this::handleRetrieveAvailableRoomList);
+        requestHandlers.put(Request.Types.ROOM_CREATE, this::handleCreateRoom);
+        requestHandlers.put(Request.Types.MESSAGE_NEW, this::handleMessageReceiver);
+        requestHandlers.put(Request.Types.USER_ROOM_JOIN, this::handleJoinRoom);
     }
 
     @Override
@@ -57,58 +71,44 @@ public class Session implements Runnable {
 
             while (!clientSocket.isClosed()) {
                 try {
-                    System.out.println("wait for next command");
-                    Command command = (Command) inputStream.readObject();
-                    synchronized (outputStream) { // prevent other thread send messages to client, until request is proccessed
-                        processCommand(command);
+                    Request request = (Request) inputStream.readObject();
+                    synchronized (outputStream) { // prevent other thread send messages to client, until request is processed
+                        processCommand(request);
                     }
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }
-            close();
+            closeSession();
         } catch (IOException e) {
             e.printStackTrace();
-            close();
+            closeSession();
         }
     }
 
-    private void processCommand(Command command) {
-        if (Arrays.stream(state.getAllowedCommands()).noneMatch(x -> x == command.type)) {
-            System.out.println("no access to command: " + command.type);
-            sendResponse(new Status(Status.Codes.ERROR));
+    private void processCommand(Request request) {
+        // check access to request type
+        if (Arrays.stream(state.getAllowedCommands()).noneMatch(x -> x == request.type)) {
+            sendResponse(new ErrorResponse("No access to request: " + request.type));
             return;
         }
 
-        switch (command.type) {
-            case CLOSE:
-                close();
-                break;
-            case HAND_SHAKE:
-                handleHandShake(command);
-                break;
-            case AUTHENTICATION:
-                handleAuthentication(command);
-                break;
-            case ROOM_GET_AVAILABLE_LIST:
-                handleRetriveAvalibleRoomList(command);
-                break;
-            case ROOM_CREATE:
-                handleCreateRoom(command);
-                break;
-            case MESSAGE_NEW:
-                handleMessageReceiver(command);
-                break;
-            case USER_ROOM_JOIN:
-                handleJoinRoom(command);
-                break;
-            default:
-                System.out.println("Uknown handler for command type" + command.type);
-                sendResponse(new Status(Status.Codes.ERROR));
+        if (!requestHandlers.containsKey(request.getType())) {
+            sendResponse(new ErrorResponse("Unknown request type" + request.type));
+            return;
         }
+
+        // call handler to precess request
+        Lambdas.Function1 handler = requestHandlers.get(request.getType());
+        handler.apply(request);
     }
 
-    private boolean sendResponse(Status response) {
+    private boolean sendResponse(Response response) {
+        // print outgoing error responses
+        if (response.getCode() == Response.Codes.ERROR) {
+            System.out.println("user " + user.getId() + " - " + response.getBody());
+        }
+
         try {
             synchronized (outputStream) {
                 outputStream.writeObject(response);
@@ -121,25 +121,25 @@ public class Session implements Runnable {
     }
 
 
-    private void handleHandShake(Command command) {
+    private void handleHandShake(Request request) {
         System.out.println("hand shake received");
-        if (sendResponse(new Status(Status.Codes.OK))) {
+        if (sendResponse(new Response(Response.Codes.OK))) {
             state = States.GUEST;
         }
     }
 
-    private void handleAuthentication(Command command) {
+    private void handleAuthentication(Request request) {
         // TODO only one connection per user
         System.out.println("authentication request received");
 
-        Status response = new Status(Status.Codes.OK);
+        Response response = new Response(Response.Codes.OK);
 
-        String username = command.getParam("username");
-        String password = command.getParam("password");
+        String username = request.getParam("username");
+        String password = request.getParam("password");
 
         user = userRepository.authenticate(username, password);
         if (user == null) {
-            sendResponse(new Status(Status.Codes.ERROR));
+            sendResponse(new Response(Response.Codes.ERROR));
             return;
         }
 
@@ -174,34 +174,34 @@ public class Session implements Runnable {
         return roomStatus;
     }
 
-    private void handleRetriveAvalibleRoomList(Command command) {
+    private void handleRetrieveAvailableRoomList(Request request) {
         System.out.println("room list request received");
 
         ArrayList<RoomInfo> roomList = roomRepository.getAllAvailable(user);
-        Status response = new Status(Status.Codes.OK);
+        Response response = new Response(Response.Codes.OK);
         response.setBody(roomList);
         sendResponse(response);
     }
 
-    private void handleCreateRoom(Command command) {
+    private void handleCreateRoom(Request request) {
         System.out.println("new room request received");
 
-        String roomName = command.getParam("name");
+        String roomName = request.getParam("name");
         Room room = roomRepository.createRoom(roomName, user);
         roomRepository.joinRoom(room, user);
 
         roomManager.joinRoomThread(room, user, this);
 
-        Status response = new Status(Status.Codes.OK);
+        Response response = new Response(Response.Codes.OK);
         response.setBody(getRoomStatus(room));
         sendResponse(response);
     }
 
-    private void handleMessageReceiver(Command command) {
+    private void handleMessageReceiver(Request request) {
         System.out.println("new message received");
 
-        String text = command.getParam("text");
-        int roomId = command.getParam("roomId");
+        String text = request.getParam("text");
+        int roomId = request.getParam("roomId");
 
 
         if (!roomManager.isConnected(user, roomId)) {
@@ -214,40 +214,40 @@ public class Session implements Runnable {
 
         Message message = messageRepository.save(text, roomThread.getRoom(), user);
         if (message != null) {
-            roomThread.recieveMessage(message);
+            roomThread.receiveMessage(message);
         }
 
         System.out.println("from: " + user.getName() + " message: " + text + " room:" + roomId);
     }
 
-    private void handleJoinRoom(Command command) {
+    private void handleJoinRoom(Request request) {
         System.out.println("join room request recieved");
 
-        int roomId = command.getParam("roomId");
+        int roomId = request.getParam("roomId");
 
         Room room = roomRepository.joinRoom(roomId, user);
         roomManager.joinRoomThread(room, user, this);
 
-        Status response = new Status(Status.Codes.OK);
+        Response response = new Response(Response.Codes.OK);
         response.setBody(getRoomStatus(room));
         sendResponse(response);
     }
 
     public void sendDisconect() {
-        sendCommand(new Command(Command.Types.CLOSE));
+        sendCommand(new Request(Request.Types.CLOSE));
     }
 
-    public void sendCommand(Command command) {
+    public void sendCommand(Request request) {
         try {
             synchronized (outputStream) {
-                outputStream.writeObject(command);
+                outputStream.writeObject(request);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void close() {
+    private void closeSession() {
         System.out.println("closing session");
 
         try {
@@ -277,30 +277,30 @@ public class Session implements Runnable {
     }
 
     enum States {
-        NEW(new Command.Types[]{
-                Command.Types.HAND_SHAKE,
-                Command.Types.CLOSE
+        NEW(new Request.Types[]{
+                Request.Types.HAND_SHAKE,
+                Request.Types.CLOSE
         }),
-        GUEST(new Command.Types[]{
-                Command.Types.AUTHENTICATION,
-                Command.Types.CLOSE
+        GUEST(new Request.Types[]{
+                Request.Types.AUTHENTICATION,
+                Request.Types.CLOSE
         }),
 
-        AUTHENTICATED(new Command.Types[]{
-                Command.Types.ROOM_CREATE,
-                Command.Types.ROOM_GET_AVAILABLE_LIST,
-                Command.Types.USER_ROOM_JOIN,
-                Command.Types.MESSAGE_NEW,
-                Command.Types.CLOSE,
+        AUTHENTICATED(new Request.Types[]{
+                Request.Types.ROOM_CREATE,
+                Request.Types.ROOM_GET_AVAILABLE_LIST,
+                Request.Types.USER_ROOM_JOIN,
+                Request.Types.MESSAGE_NEW,
+                Request.Types.CLOSE,
         });
 
-        protected Command.Types[] allowedCommands;
+        protected Request.Types[] allowedCommands;
 
-        States(Command.Types[] allowedCommands) {
+        States(Request.Types[] allowedCommands) {
             this.allowedCommands = allowedCommands;
         }
 
-        public Command.Types[] getAllowedCommands() {
+        public Request.Types[] getAllowedCommands() {
             return allowedCommands;
         }
     }

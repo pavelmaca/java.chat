@@ -22,11 +22,10 @@ public class Server {
 
         // start listening for clients
         int listeningPort = Configurator.getListeningPort();
-        startListening(listeningPort);
-
+        startListeningForClients(listeningPort);
     }
 
-    private static void startListening(int port) {
+    private static void startListeningForClients(int port) {
         RoomManager roomManager = new RoomManager();
         try {
             ServerSocket serverSocket = new ServerSocket(port);

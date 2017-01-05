@@ -1,7 +1,7 @@
 package pavelmaca.chat.client;
 
-import pavelmaca.chat.commands.Command;
-import pavelmaca.chat.commands.Status;
+import pavelmaca.chat.share.comunication.Request;
+import pavelmaca.chat.share.comunication.Response;
 import pavelmaca.chat.share.model.RoomInfo;
 import pavelmaca.chat.share.model.RoomStatus;
 
@@ -24,8 +24,8 @@ public class Session implements Runnable {
 
     private boolean running;
 
-    private ArrayBlockingQueue<Status> responseQueue = new ArrayBlockingQueue<>(1);
-    private LinkedBlockingDeque<Command> updateQueue = new LinkedBlockingDeque<>();
+    private ArrayBlockingQueue<Response> responseQueue = new ArrayBlockingQueue<>(1);
+    private LinkedBlockingDeque<Request> updateQueue = new LinkedBlockingDeque<>();
 
     @Override
     public void run() {
@@ -34,12 +34,12 @@ public class Session implements Runnable {
             try {
                 Object inputObject = inputStream.readObject();
 
-                if (inputObject instanceof Status) {
-                    responseQueue.put((Status) inputObject);
+                if (inputObject instanceof Response) {
+                    responseQueue.put((Response) inputObject);
                 } else {
-                    Command command = (Command) inputObject;
-                    System.out.println("Received coomand " + command.getType());
-                    updateQueue.putLast(command);
+                    Request request = (Request) inputObject;
+                    System.out.println("Received coomand " + request.getType());
+                    updateQueue.putLast(request);
                 }
             } catch (IOException | InterruptedException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -47,7 +47,7 @@ public class Session implements Runnable {
         }
     }
 
-    public LinkedBlockingDeque<Command> getUpdateQueue() {
+    public LinkedBlockingDeque<Request> getUpdateQueue() {
         return updateQueue;
     }
 
@@ -61,9 +61,9 @@ public class Session implements Runnable {
             new Thread(this).start();
 
             // performe heandshake
-            Command request = new Command(Command.Types.HAND_SHAKE);
-            Status response = sendRequest(request);
-            return response.getCode() == Status.Codes.OK;
+            Request request = new Request(Request.Types.HAND_SHAKE);
+            Response response = sendRequest(request);
+            return response.getCode() == Response.Codes.OK;
         } catch (IOException e) {
             //e.printStackTrace();
             return false;
@@ -71,70 +71,70 @@ public class Session implements Runnable {
     }
 
     public ArrayList<RoomStatus> authenticate(String username, String password) {
-        Command command = new Command(Command.Types.AUTHENTICATION);
-        command.addParametr("username", username);
-        command.addParametr("password", password);
+        Request request = new Request(Request.Types.AUTHENTICATION);
+        request.addParameter("username", username);
+        request.addParameter("password", password);
 
-        Status response = sendRequest(command);
+        Response response = sendRequest(request);
 
-        if (response.getCode() == Status.Codes.OK) {
+        if (response.getCode() == Response.Codes.OK) {
             return response.getBody();
         }
         return null;
     }
 
     public void sendMessage(String text, int roomId) {
-        Command command = new Command(Command.Types.MESSAGE_NEW);
-        command.addParametr("text", text);
-        command.addParametr("roomId", roomId);
-        sendRequestWithoutResponse(command);
+        Request request = new Request(Request.Types.MESSAGE_NEW);
+        request.addParameter("text", text);
+        request.addParameter("roomId", roomId);
+        sendRequestWithoutResponse(request);
     }
 
     public ArrayList<RoomInfo> getAvailableRoomList() {
-        Command command = new Command(Command.Types.ROOM_GET_AVAILABLE_LIST);
-        Status response = sendRequest(command);
-        if (response.getCode() == Status.Codes.OK) {
+        Request request = new Request(Request.Types.ROOM_GET_AVAILABLE_LIST);
+        Response response = sendRequest(request);
+        if (response.getCode() == Response.Codes.OK) {
             return response.getBody();
         }
         return new ArrayList<>();
     }
 
     public RoomStatus createRoom(String name) {
-        Command command = new Command(Command.Types.ROOM_CREATE);
-        command.addParametr("name", name);
-        Status response = sendRequest(command);
-        if (response.getCode() == Status.Codes.OK) {
+        Request request = new Request(Request.Types.ROOM_CREATE);
+        request.addParameter("name", name);
+        Response response = sendRequest(request);
+        if (response.getCode() == Response.Codes.OK) {
             return response.getBody();
         }
         return null;
     }
 
     public RoomStatus joinRoom(int roomId) {
-        Command command = new Command(Command.Types.USER_ROOM_JOIN);
-        command.addParametr("roomId", roomId);
-        Status response = sendRequest(command);
-        if (response.getCode() == Status.Codes.OK) {
+        Request request = new Request(Request.Types.USER_ROOM_JOIN);
+        request.addParameter("roomId", roomId);
+        Response response = sendRequest(request);
+        if (response.getCode() == Response.Codes.OK) {
             return response.getBody();
         }
         return null;
     }
 
-    private Status sendRequest(Command command) {
+    private Response sendRequest(Request request) {
         // prevent making more requests until response is processed
         synchronized (outputStream) {
             try {
-                outputStream.writeObject(command);
+                outputStream.writeObject(request);
                 return responseQueue.take();
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        return new Status(Status.Codes.ERROR);
+        return new Response(Response.Codes.ERROR);
     }
 
-    private synchronized void sendRequestWithoutResponse(Command command) {
+    private synchronized void sendRequestWithoutResponse(Request request) {
         try {
-            outputStream.writeObject(command);
+            outputStream.writeObject(request);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -145,9 +145,9 @@ public class Session implements Runnable {
 
         // unblock terminate update listener
         try {
-            Command command = new Command(Command.Types.CLOSE);
-            //sendRequest(command);
-            updateQueue.putFirst(command);
+            Request request = new Request(Request.Types.CLOSE);
+            //sendRequest(request);
+            updateQueue.putFirst(request);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

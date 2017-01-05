@@ -1,7 +1,6 @@
 package pavelmaca.chat.server;
 
 
-
 import pavelmaca.chat.server.repository.MessageRepository;
 import pavelmaca.chat.server.repository.RoomRepository;
 import pavelmaca.chat.server.repository.UserRepository;
@@ -15,7 +14,7 @@ import java.util.Properties;
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class Database {
-    Connection connection;
+    private Connection connection;
 
     // Repositories
     private UserRepository userRepository;
@@ -34,10 +33,14 @@ public class Database {
             connection = DriverManager.getConnection(url, properties);
         } catch (SQLException e) {
             System.out.println("Could not connect to database, check your configuration.");
+            e.printStackTrace();
         }
     }
 
-    public boolean isConnected(){
+    public boolean isConnected() {
+        if (connection == null) {
+            return false;
+        }
         try {
             return connection.isValid(100);
         } catch (SQLException e) {
@@ -46,7 +49,7 @@ public class Database {
         return false;
     }
 
-    public void closeConnection(){
+    public void closeConnection() {
         try {
             connection.close();
         } catch (SQLException e) {
@@ -54,22 +57,22 @@ public class Database {
         }
     }
 
-    public UserRepository getUserRepository(){
-        if(userRepository== null){
+    public UserRepository getUserRepository() {
+        if (userRepository == null) {
             userRepository = new UserRepository(connection);
         }
         return userRepository;
     }
 
-    public RoomRepository getRoomRepository(){
-        if(roomRepository== null){
+    public RoomRepository getRoomRepository() {
+        if (roomRepository == null) {
             roomRepository = new RoomRepository(connection, getUserRepository());
         }
         return roomRepository;
     }
 
-    public MessageRepository getMessageRepository(){
-        if(messageRepository== null){
+    public MessageRepository getMessageRepository() {
+        if (messageRepository == null) {
             messageRepository = new MessageRepository(connection);
         }
         return messageRepository;

@@ -1,7 +1,7 @@
 package pavelmaca.chat.client.gui.window;
 
-import pavelmaca.chat.client.Lambdas;
-import pavelmaca.chat.client.Lambdas.Function2;
+import pavelmaca.chat.share.Lambdas;
+import pavelmaca.chat.share.Lambdas.Function2;
 import pavelmaca.chat.client.renderer.MessageListRenderer;
 import pavelmaca.chat.client.renderer.RoomListRenderer;
 import pavelmaca.chat.client.renderer.UserListRenderer;

@@ -1,6 +1,6 @@
 package pavelmaca.chat.client.gui.window;
 
-import pavelmaca.chat.client.Lambdas;
+import pavelmaca.chat.share.Lambdas;
 
 import javax.swing.*;
 import java.awt.*;

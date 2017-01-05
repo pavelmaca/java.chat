@@ -1,16 +1,16 @@
-package pavelmaca.chat.commands;
+package pavelmaca.chat.share.comunication;
 
 import java.io.Serializable;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Status implements Serializable {
+public class Response implements Serializable {
 
     private Codes code;
     private Object body;
 
-    public Status(Codes code) {
+    public Response(Codes code) {
         this.code = code;
     }
 

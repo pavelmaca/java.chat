@@ -4,7 +4,7 @@ import pavelmaca.chat.client.gui.window.Chat;
 import pavelmaca.chat.client.gui.window.Connection;
 import pavelmaca.chat.client.gui.window.JoinRoom;
 import pavelmaca.chat.client.gui.window.Login;
-import pavelmaca.chat.commands.Command;
+import pavelmaca.chat.share.comunication.Request;
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.RoomInfo;
 import pavelmaca.chat.share.model.RoomStatus;
@@ -115,34 +115,38 @@ public class Client implements Runnable {
             boolean running = true;
             while (running) {
                 try {
-                    Command command = session.getUpdateQueue().takeFirst();
-                    switch (command.getType()) {
-                        case ROOM_USER_CONNECTED:
-                            chatWindow.userConnected(
-                                    command.getParam("roomId"),
-                                    command.getParam("user")
-                            );
-                            break;
-                        case ROOM_USER_DISCONNECTED:
-                            chatWindow.userDisconnected(
-                                    command.getParam("roomId"),
-                                    command.getParam("userId")
-                            );
-                            break;
-                        case MESSAGE_NEW:
-                            chatWindow.messageRecieved(command.getParam("message"));
-                            break;
-                        case CLOSE:
-                            running = false;
-                        default:
-                            System.out.println("Invalid command " + command.getType());
+                    System.out.println("event thred: " +
+                            SwingUtilities.isEventDispatchThread());
+                    synchronized (chatWindow) {
+                        Request request = session.getUpdateQueue().takeFirst();
+                        switch (request.getType()) {
+                            case ROOM_USER_CONNECTED:
+                                chatWindow.userConnected(
+                                        request.getParam("roomId"),
+                                        request.getParam("user")
+                                );
+                                break;
+                            case ROOM_USER_DISCONNECTED:
+                                chatWindow.userDisconnected(
+                                        request.getParam("roomId"),
+                                        request.getParam("userId")
+                                );
+                                break;
+                            case MESSAGE_NEW:
+                                chatWindow.messageRecieved(request.getParam("message"));
+                                break;
+                            case CLOSE:
+                                running = false;
+                            default:
+                                System.out.println("Invalid request " + request.getType());
+                        }
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
             }
         }).start();
-
 
 
         chatWindow.onRoomCreated(() -> openJoinRoomWindow(chatWindow));

@@ -1,4 +1,4 @@
-package pavelmaca.chat.client;
+package pavelmaca.chat.share;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
