@@ -1,5 +1,6 @@
 package pavelmaca.chat.client;
 
+import com.alee.laf.WebLookAndFeel;
 import pavelmaca.chat.client.gui.window.Chat;
 import pavelmaca.chat.client.gui.window.Connection;
 import pavelmaca.chat.client.gui.window.JoinRoom;
@@ -16,15 +17,17 @@ import java.util.Properties;
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Client implements Runnable {
+public class ClientApp implements Runnable {
 
     Session session;
     Properties properties;
 
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            SwingUtilities.invokeLater(new Client());
+           // WebLookAndFeel.install ();
+            UIManager.setLookAndFeel ( new WebLookAndFeel () );
+          //  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            SwingUtilities.invokeLater(new ClientApp());
         } catch (Throwable e) {
             e.printStackTrace();
         }

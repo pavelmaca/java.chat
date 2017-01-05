@@ -8,7 +8,7 @@ import java.util.Properties;
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Server {
+public class ServerApp {
     private static Database database;
 
     public static void main(String[] args) {
