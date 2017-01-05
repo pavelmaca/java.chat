@@ -26,6 +26,10 @@ public class GUIRequestListener implements Runnable {
         while (running) {
             try {
                 Request request = session.getUpdateQueue().takeFirst();
+                if(request.type == Request.Types.DUMMY){
+                    running = false;
+                    break;
+                }
                 processRequest(request);
             } catch (InterruptedException e) {
                 e.printStackTrace();

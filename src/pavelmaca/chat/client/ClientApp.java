@@ -5,7 +5,6 @@ import pavelmaca.chat.client.gui.window.Chat;
 import pavelmaca.chat.client.gui.window.Connection;
 import pavelmaca.chat.client.gui.window.JoinRoom;
 import pavelmaca.chat.client.gui.window.Login;
-import pavelmaca.chat.share.comunication.Request;
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.RoomInfo;
 import pavelmaca.chat.share.model.RoomStatus;
@@ -117,12 +116,12 @@ public class ClientApp implements Runnable {
             session.sendMessage(text, roomId);
         });
 
-        chatWindow.setDisconnectListener(() -> {
+        chatWindow.addDisconnectListener(() -> {
             chatWindow.close();
             openConnectionWindow();
         });
 
-        chatWindow.setLogoutListener(() -> {
+        chatWindow.addLogoutListener(() -> {
             chatWindow.close();
             openAuthenticationWindow();
         });
@@ -132,8 +131,7 @@ public class ClientApp implements Runnable {
         //update listener
         new Thread(new GUIRequestListener(chatWindow, session)).start();
 
-        chatWindow.onRoomCreated(() -> openJoinRoomWindow(chatWindow));
-
+        chatWindow.onJoinRoomClicked((e) -> openJoinRoomWindow(chatWindow));
     }
 
     private void openJoinRoomWindow(Chat chatWindow) {

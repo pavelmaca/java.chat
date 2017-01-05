@@ -1,17 +1,17 @@
 package pavelmaca.chat.client.gui.window;
 
+import pavelmaca.chat.client.gui.components.HeaderMenu;
+import pavelmaca.chat.client.gui.components.RoomList;
+import pavelmaca.chat.client.gui.components.UserList;
 import pavelmaca.chat.share.Lambdas;
 import pavelmaca.chat.share.Lambdas.Function2;
 import pavelmaca.chat.client.gui.renderer.MessageListRenderer;
-import pavelmaca.chat.client.gui.renderer.RoomListRenderer;
-import pavelmaca.chat.client.gui.renderer.UserListRenderer;
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.MessageInfo;
 import pavelmaca.chat.share.model.RoomStatus;
 import pavelmaca.chat.share.model.UserInfo;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -26,18 +26,16 @@ public class Chat extends Window {
     private User currentUser;
 
     private ArrayList<RoomStatus> roomStatuses = new ArrayList<>();
-    final private DefaultListModel<RoomStatus> roomListModel = new DefaultListModel<>();
 
     // GUI elements
-    private JList<RoomStatus> roomJList;
-    private JList<UserInfo> userJList;
+    private UserList userList;
+    private RoomList roomList;
+    private HeaderMenu headerMenu;
+
     private JList<MessageInfo> chatJList;
     private JTextField message;
     private JButton sendBtn;
-    private JButton joinRoom;
 
-    private Lambdas.Function0 disconnectListener;
-    private Lambdas.Function0 logoutListener;
     private boolean closingForLogout = false;
 
     public Chat(ArrayList<RoomStatus> roomStatus, User currentUser) {
@@ -45,41 +43,57 @@ public class Chat extends Window {
         this.currentUser = currentUser;
 
         roomStatuses = roomStatus;
-        roomStatuses.forEach(statusUpdate -> addRoom(statusUpdate, false));
-        roomJList.setModel(roomListModel);
-
+        roomStatuses.forEach(statusUpdate -> roomList.addRoom(statusUpdate));
         if (!roomStatuses.isEmpty()) {
-            roomJList.setSelectedValue(roomStatuses.get(0), true);
+            roomList.setSelected(roomStatuses.get(0));
         }
-
-        System.out.println("my identity is:" + currentUser.getName());
     }
 
     @Override
     protected void setupComponents() {
+        roomList = new RoomList();
+        headerMenu = new HeaderMenu();
+        userList = new UserList();
+
+        roomList.addRoomSelectedListener(room -> {
+            //change window title to room name
+            frame.setTitle(room.getRoomInfo().getName());
+            System.out.println("selected room " + room.getRoomInfo().getId());
+            userList.show(room.getActiveUsers());
+            updateChatList(room);
+        });
+
+        headerMenu.addChangePasswordActionListener(e -> {
+            ChangePassword changePassword = new ChangePassword();
+            changePassword.onCancel(changePassword::close);
+            changePassword.onSubmit(s -> {
+                changePassword.close();
+                //TODO change password
+                System.out.println("new password: " + s);
+            });
+        });
+
+        frame.setJMenuBar(headerMenu.create());
+
+
         frame.setResizable(true);
         frame.setMinimumSize(new Dimension(450, 300));
+
         Container contentPane = frame.getContentPane();
-
-        setupHeaderMenu();
-
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                setupRoomList(), setupChat());
+                roomList.create(), setupChat());
         contentPane.add(splitPane, BorderLayout.CENTER);
 
-
-
-    /*    contentPane.setLayout(new BorderLayout());
-        contentPane.add(setupRoomList(), BorderLayout.LINE_START);
-        contentPane.add(setupUserList(), BorderLayout.LINE_END);
-        contentPane.add(setupChat(), BorderLayout.CENTER);*/
     }
 
     public void onMessageSubmit(Function2<String, Integer> callback) {
         Action action = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                RoomStatus selectedRoom = roomJList.getSelectedValue();
+                if (!roomList.isSelected()) {
+                    return;
+                }
+                RoomStatus selectedRoom = roomList.getSelected();
                 String text = message.getText();
                 message.setText("");
                 if (!text.isEmpty()) {
@@ -95,115 +109,17 @@ public class Chat extends Window {
         sendBtn.addActionListener(action);
     }
 
-    public void onRoomCreated(Lambdas.Function0 callback) {
-        joinRoom.addActionListener(e -> callback.apply());
+    public void onJoinRoomClicked(ActionListener listener) {
+        roomList.addJoinActionListener(listener);
     }
 
-    private void onRoomSelected() {
-        if (roomJList.isSelectionEmpty()) {
-            return;
+
+    public void addRoom(RoomStatus room, boolean setSelected) {
+        roomList.addRoom(room);
+        if (setSelected) {
+            roomList.setSelected(room);
         }
 
-        RoomStatus room = roomJList.getSelectedValue();
-
-        //change window title to room name
-        frame.setTitle(room.getRoomInfo().getName());
-
-        System.out.println("selected room " + room.getRoomInfo().getId());
-
-        roomJList.setSelectedValue(room, true);
-
-        updateUserList(room);
-
-        updateChatList(room);
-    }
-
-    public void addRoom(RoomStatus room, boolean setFocus) {
-        roomListModel.addElement(room);
-        if (setFocus) {
-            roomJList.setSelectedValue(room, true);
-        }
-
-    }
-
-    private void setupHeaderMenu() {
-        JMenuBar menuBar = new JMenuBar();
-
-        JMenu server = new JMenu("Server");
-        menuBar.add(server);
-
-        JMenuItem disconnect = new JMenuItem("Disconnect");
-        disconnect.addActionListener(e -> this.performDisconnect());
-        server.add(disconnect);
-
-        JMenu user = new JMenu("User");
-        menuBar.add(user);
-
-        JMenuItem changePassword = new JMenuItem("Change password");
-        user.add(changePassword);
-
-        JMenuItem logout = new JMenuItem("Logout");
-        logout.addActionListener(e -> this.performLogout());
-        user.add(logout);
-
-        frame.setJMenuBar(menuBar);
-    }
-
-    private JPanel setupRoomList() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
-
-        //create the list
-        roomJList = new JList<>();
-        roomJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        roomJList.setFocusable(false);
-        panel.add(new JScrollPane(roomJList), BorderLayout.CENTER);
-
-        //roomJList.setFixedCellHeight(25);
-        roomJList.setFixedCellWidth(100);
-        roomJList.setCellRenderer(new RoomListRenderer());
-
-        roomJList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                onRoomSelected();
-            }
-        });
-
-        joinRoom = new JButton("Join room");
-        panel.add(joinRoom, BorderLayout.PAGE_END);
-
-        TitledBorder title = BorderFactory.createTitledBorder("Room list");
-        panel.setBorder(title);
-
-        Dimension minimumSize = new Dimension(150, 25);
-        roomJList.setMinimumSize(minimumSize);
-        panel.setMinimumSize(minimumSize);
-
-        return panel;
-    }
-
-    private JPanel setupUserList() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 10));
-
-        userJList = new JList<>();
-        userJList.setFocusable(false);
-        panel.add(new JScrollPane(userJList), BorderLayout.CENTER);
-
-        userJList.setFixedCellHeight(25);
-        userJList.setFixedCellWidth(100);
-        userJList.setCellRenderer(new UserListRenderer());
-
-        TitledBorder title = BorderFactory.createTitledBorder("Active users");
-        panel.setBorder(title);
-
-        Dimension minimumSize = new Dimension(120, 25);
-        userJList.setMinimumSize(minimumSize);
-        panel.setMinimumSize(minimumSize);
-
-        return panel;
     }
 
     private JSplitPane setupChat() {
@@ -253,7 +169,7 @@ public class Chat extends Window {
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(panel);
-        splitPane.setRightComponent(setupUserList());
+        splitPane.setRightComponent(userList.create());
         splitPane.setResizeWeight(1);
         return splitPane;
     }
@@ -262,8 +178,8 @@ public class Chat extends Window {
         for (RoomStatus roomStatus : roomStatuses) {
             if (roomStatus.getRoomInfo().getId() == roomId) {
                 roomStatus.getActiveUsers().add(userInfo);
-                if (roomJList.getSelectedValue().equals(roomStatus)) {
-                    updateUserList(roomStatus);
+                if (roomList.getSelected().equals(roomStatus)) {
+                    userList.show(roomStatus.getActiveUsers());
                 }
             }
         }
@@ -279,8 +195,8 @@ public class Chat extends Window {
                     UserInfo userInfo = i.next();
                     if (userInfo.getId() == userId) {
                         i.remove();
-                        if (roomJList.getSelectedValue().equals(roomStatus)) {
-                            updateUserList(roomStatus);
+                        if (roomList.getSelected().equals(roomStatus)) {
+                            userList.show(roomStatus.getActiveUsers());
                         }
                         break;
                     }
@@ -288,12 +204,6 @@ public class Chat extends Window {
                 break;
             }
         }
-    }
-
-    private void updateUserList(RoomStatus room) {
-        DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
-        room.getActiveUsers().forEach(userListModel::addElement);
-        userJList.setModel(userListModel);
     }
 
     private void updateChatList(RoomStatus room) {
@@ -307,7 +217,7 @@ public class Chat extends Window {
         for (RoomStatus roomStatus : roomStatuses) {
             if (roomStatus.getRoomInfo().getId() == message.getRoomId()) {
                 roomStatus.addMessage(message);
-                if (roomJList.getSelectedValue().equals(roomStatus)) {
+                if (roomList.getSelected().equals(roomStatus)) {
                     updateChatList(roomStatus);
                 }
                 break;
@@ -315,21 +225,15 @@ public class Chat extends Window {
         }
     }
 
-    public void setDisconnectListener(Lambdas.Function0 callback) {
-        disconnectListener = callback;
+    public void addDisconnectListener(Lambdas.Function0 callback) {
+        headerMenu.addDisconnectActionListener(e -> callback.apply());
     }
 
-    public void performDisconnect() {
-        disconnectListener.apply();
-    }
-
-    public void setLogoutListener(Lambdas.Function0 callback) {
-        logoutListener = callback;
-    }
-
-    public void performLogout() {
-        closingForLogout = true;
-        logoutListener.apply();
+    public void addLogoutListener(Lambdas.Function0 callback) {
+        headerMenu.addLogoutActionListener(e -> {
+            closingForLogout = true;
+            callback.apply();
+        });
     }
 
     public void addWindowsCloseListener(Lambdas.Function1<Boolean> callback) {

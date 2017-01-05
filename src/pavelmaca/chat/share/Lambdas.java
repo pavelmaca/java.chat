@@ -3,7 +3,7 @@ package pavelmaca.chat.share;
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Lambdas {
+public abstract class Lambdas {
 
     @FunctionalInterface
     public interface Function0 {

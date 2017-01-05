@@ -27,6 +27,8 @@ public class Session implements Runnable {
     private ArrayBlockingQueue<Response> responseQueue = new ArrayBlockingQueue<>(1);
     private LinkedBlockingDeque<Request> updateQueue = new LinkedBlockingDeque<>();
 
+    private static final Request DUMMY = new Request(Request.Types.DUMMY);
+
     @Override
     public void run() {
         running = true;
@@ -44,6 +46,13 @@ public class Session implements Runnable {
             } catch (IOException | InterruptedException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
+        }
+
+        // unblock all thread locked on updateQueue
+        try {
+            updateQueue.putLast(DUMMY);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

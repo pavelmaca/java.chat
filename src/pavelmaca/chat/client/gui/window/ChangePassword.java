@@ -8,18 +8,17 @@ import java.awt.*;
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Login extends Window {
-    private JTextField userName;
-    private JTextField password;
-    private JLabel userNameLabel;
-    private JLabel passwordLabel;
-    private JButton connectBtn;
+public class ChangePassword extends Window {
+
+    private JLabel newPasswordLabel;
+    private JTextField newPassword;
+    private JButton saveBtn;
     private JButton cancelBtn;
 
     JLabel errorLabel;
 
-    public Login() {
-        super("Login");
+    public ChangePassword() {
+        super("Change password");
     }
 
     @Override
@@ -27,22 +26,13 @@ public class Login extends Window {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
-        userNameLabel = new JLabel("Username");
-        panel.add(userNameLabel);
 
-        userName = new JTextField();
-        panel.add(userName);
+        newPasswordLabel = new JLabel("New password");
+        panel.add(newPasswordLabel);
 
-        passwordLabel = new JLabel("Password");
-        panel.add(passwordLabel);
+        newPassword = new JTextField();
+        panel.add(newPassword);
 
-        password = new JTextField();
-        panel.add(password);
-
-        errorLabel = new JLabel("");
-        errorLabel.setVisible(false);
-        errorLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        panel.add(errorLabel);
 
         //Lay out the buttons from left to right.
         JPanel buttonPane = new JPanel();
@@ -55,22 +45,26 @@ public class Login extends Window {
 
         buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 
-        connectBtn = new JButton("OK");
-        buttonPane.add(connectBtn);
+        saveBtn = new JButton("Save");
+        buttonPane.add(saveBtn);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+
+        errorLabel = new JLabel("");
+        errorLabel.setVisible(false);
+        errorLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        panel.add(errorLabel);
 
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         frame.getContentPane().add(buttonPane, BorderLayout.PAGE_END);
     }
 
-    public void onSubmit(Lambdas.Function2<String, String> callback) {
-        connectBtn.addActionListener(e -> {
-            String userNameText = userName.getText();
-            if (!userNameText.isEmpty() && !password.getText().isEmpty()) {
-                callback.apply(userName.getText(), password.getText());
+    public void onSubmit(Lambdas.Function1<String> callback) {
+        saveBtn.addActionListener(e -> {
+            if (!newPassword.getText().isEmpty()) {
+                callback.apply(newPassword.getText());
             }else {
-                showError("Fill username and password.");
+                showError("password can't be empty.");
             }
         });
     }
