@@ -240,6 +240,7 @@ public class Chat extends Window {
         DefaultListModel<MessageInfo> chatListModel = new DefaultListModel<>();
         room.getMessages().forEach(chatListModel::addElement);
         chatJList.setModel(chatListModel);
+        chatJList.ensureIndexIsVisible(chatListModel.size() - 1);
     }
 
     public void messageRecieved(MessageInfo message) {
