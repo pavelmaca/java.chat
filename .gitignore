@@ -60,3 +60,5 @@ fabric.properties
 
 # Custom project files
 /database.properties
+
+!/libs/*.jar

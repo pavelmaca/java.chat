@@ -2,9 +2,9 @@ package pavelmaca.chat.client.gui.window;
 
 import pavelmaca.chat.share.Lambdas;
 import pavelmaca.chat.share.Lambdas.Function2;
-import pavelmaca.chat.client.renderer.MessageListRenderer;
-import pavelmaca.chat.client.renderer.RoomListRenderer;
-import pavelmaca.chat.client.renderer.UserListRenderer;
+import pavelmaca.chat.client.gui.renderer.MessageListRenderer;
+import pavelmaca.chat.client.gui.renderer.RoomListRenderer;
+import pavelmaca.chat.client.gui.renderer.UserListRenderer;
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.MessageInfo;
 import pavelmaca.chat.share.model.RoomStatus;
@@ -57,10 +57,16 @@ public class Chat extends Window {
         frame.setResizable(true);
         frame.setMinimumSize(new Dimension(450, 300));
         Container contentPane = frame.getContentPane();
-        contentPane.setLayout(new BorderLayout());
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                setupRoomList(), setupChat());
+        contentPane.add(splitPane, BorderLayout.CENTER);
+
+
+    /*    contentPane.setLayout(new BorderLayout());
         contentPane.add(setupRoomList(), BorderLayout.LINE_START);
         contentPane.add(setupUserList(), BorderLayout.LINE_END);
-        contentPane.add(setupChat(), BorderLayout.CENTER);
+        contentPane.add(setupChat(), BorderLayout.CENTER);*/
     }
 
     public void onMessageSubmit(Function2<String, Integer> callback) {
@@ -134,6 +140,10 @@ public class Chat extends Window {
         joinRoom = new JButton("Join room");
         panel.add(joinRoom, BorderLayout.PAGE_END);
 
+        Dimension minimumSize = new Dimension(150, 25);
+        roomJList.setMinimumSize(minimumSize);
+        panel.setMinimumSize(minimumSize);
+
         return panel;
     }
 
@@ -147,13 +157,16 @@ public class Chat extends Window {
 
         userJList.setFixedCellHeight(25);
         userJList.setFixedCellWidth(100);
-        userJList.setMinimumSize(new Dimension(100, 25));
         userJList.setCellRenderer(new UserListRenderer());
+
+        Dimension minimumSize = new Dimension(120, 25);
+        userJList.setMinimumSize(minimumSize);
+        panel.setMinimumSize(minimumSize);
 
         return panel;
     }
 
-    private JPanel setupChat() {
+    private JSplitPane setupChat() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
@@ -164,7 +177,6 @@ public class Chat extends Window {
 
         chatJList.setFixedCellHeight(25);
         chatJList.setFixedCellWidth(100);
-        chatJList.setMinimumSize(new Dimension(100, 25));
         chatJList.setCellRenderer(new MessageListRenderer(currentUser));
         chatJList.addComponentListener(new ComponentAdapter() {
             /**
@@ -179,6 +191,9 @@ public class Chat extends Window {
             }
         });
 
+        Dimension minimumSize = new Dimension(300, 25);
+        chatJList.setMinimumSize(minimumSize);
+        panel.setMinimumSize(minimumSize);
 
         message = new JTextField();
         sendBtn = new JButton("Send");
@@ -195,7 +210,12 @@ public class Chat extends Window {
         panel.add(new JScrollPane(chatJList), BorderLayout.CENTER);
         panel.add(buttonPane, BorderLayout.PAGE_END);
 
-        return panel;
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setLeftComponent(panel);
+        splitPane.setRightComponent(setupUserList());
+        splitPane.setResizeWeight(1);
+        return splitPane;
     }
 
     public void userConnected(int roomId, UserInfo userInfo) {
