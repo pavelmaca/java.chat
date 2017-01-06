@@ -1,5 +1,6 @@
 package pavelmaca.chat.client.gui.window;
 
+import pavelmaca.chat.client.Session;
 import pavelmaca.chat.client.gui.components.HeaderMenu;
 import pavelmaca.chat.client.gui.components.RoomList;
 import pavelmaca.chat.client.gui.components.UserList;
@@ -24,6 +25,7 @@ import java.util.Iterator;
 public class Chat extends Window {
 
     private User currentUser;
+    private Session session;
 
     private ArrayList<RoomStatus> roomStatuses = new ArrayList<>();
 
@@ -38,9 +40,12 @@ public class Chat extends Window {
 
     private boolean closingForLogout = false;
 
-    public Chat(ArrayList<RoomStatus> roomStatus, User currentUser) {
+    private ArrayList<Lambdas.Function0> disconnectListeners = new ArrayList<>();
+
+    public Chat(Session session, ArrayList<RoomStatus> roomStatus, User currentUser) {
         super("Chat");
         this.currentUser = currentUser;
+        this.session = session;
 
         roomStatuses = roomStatus;
         roomStatuses.forEach(statusUpdate -> roomList.addRoom(statusUpdate));
@@ -66,10 +71,12 @@ public class Chat extends Window {
         headerMenu.addChangePasswordActionListener(e -> {
             ChangePassword changePassword = new ChangePassword();
             changePassword.onCancel(changePassword::close);
-            changePassword.onSubmit(s -> {
-                changePassword.close();
-                //TODO change password
-                System.out.println("new password: " + s);
+            changePassword.onSubmit(newPassword -> {
+                if (session.changePassword(newPassword)) {
+                    changePassword.close();
+                } else {
+                    changePassword.showError("Error during password change, try again.");
+                }
             });
         });
 
@@ -226,6 +233,7 @@ public class Chat extends Window {
     }
 
     public void addDisconnectListener(Lambdas.Function0 callback) {
+       // disconnectListeners.add(callback);
         headerMenu.addDisconnectActionListener(e -> callback.apply());
     }
 
@@ -245,4 +253,9 @@ public class Chat extends Window {
         });
     }
 
+   /* public void disconect() {
+        for (Lambdas.Function0 disconnectListener : disconnectListeners) {
+            disconnectListener.apply();
+        }
+    }*/
 }

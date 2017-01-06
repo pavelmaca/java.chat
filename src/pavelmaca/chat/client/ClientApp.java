@@ -102,7 +102,7 @@ public class ClientApp implements Runnable {
             return;
         }
 
-        Chat chatWindow = new Chat(roomStatuInfos, identity);
+        Chat chatWindow = new Chat(session, roomStatuInfos, identity);
         chatWindow.addWindowsCloseListener((isLogout) -> {
             System.out.println("Closing chat window");
             if (isLogout) {

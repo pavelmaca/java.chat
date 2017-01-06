@@ -1,5 +1,7 @@
 package pavelmaca.chat.server.repository;
 
+import pavelmaca.chat.server.entity.User;
+
 import java.sql.Connection;
 
 /**

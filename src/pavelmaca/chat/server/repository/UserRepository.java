@@ -49,7 +49,6 @@ public class UserRepository extends Repository {
     }
 
 
-
     private User addUser(String username, String password) {
         try {
             PreparedStatement statement = connection.prepareStatement("INSERT INTO user (name, password) VALUES(?, ?)", new String[]{"id"});
@@ -75,7 +74,7 @@ public class UserRepository extends Repository {
         // new user, create him in DB
         if (user == null) {
             user = addUser(username, password);
-            if (user == null){
+            if (user == null) {
                 return null;
             }
         }
@@ -84,5 +83,20 @@ public class UserRepository extends Repository {
             return user;
         }
         return null;
+    }
+
+    public boolean changePassword(User user, String newPassword) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("UPDATE user SET password = ? WHERE id = ? ");
+            statement.setString(1, newPassword);
+            statement.setInt(2, user.getId());
+
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

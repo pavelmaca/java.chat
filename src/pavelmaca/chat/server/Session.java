@@ -62,8 +62,8 @@ public class Session implements Runnable {
         requestHandlers.put(Request.Types.MESSAGE_NEW, this::handleMessageReceiver);
         requestHandlers.put(Request.Types.USER_ROOM_JOIN, this::handleJoinRoom);
         requestHandlers.put(Request.Types.LOGOUT, this::handleLogout);
+        requestHandlers.put(Request.Types.USER_CHANGE_PASSWORD, this::handleChangeUserPassword);
     }
-
 
     @Override
     public void run() {
@@ -107,7 +107,7 @@ public class Session implements Runnable {
 
     private boolean sendResponse(Response response) {
         // print outgoing error responses
-        if (response.getCode() == Response.Codes.ERROR) {
+        if (response.hasBody() && response.getCode() == Response.Codes.ERROR) {
             System.out.println("user " + user.getId() + " - " + response.getBody());
         }
 
@@ -247,6 +247,19 @@ public class Session implements Runnable {
         sendCommand(new Request(Request.Types.CLOSE));
     }
 
+    private void handleChangeUserPassword(Request request) {
+        String newPassword = request.getParam("password");
+        if (newPassword.length() > 0) {
+            boolean status = userRepository.changePassword(user, newPassword);
+            if (status) {
+                sendResponse(new Response(Response.Codes.OK));
+                return;
+            }
+        }
+        sendResponse(new ErrorResponse("Cant change password, try again later."));
+    }
+
+
     public void sendCommand(Request request) {
         try {
             synchronized (outputStream) {
@@ -303,6 +316,7 @@ public class Session implements Runnable {
                 Request.Types.MESSAGE_NEW,
                 Request.Types.CLOSE,
                 Request.Types.LOGOUT,
+                Request.Types.USER_CHANGE_PASSWORD,
         });
 
         protected Request.Types[] allowedCommands;

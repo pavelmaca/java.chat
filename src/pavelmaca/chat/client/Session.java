@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -44,8 +45,15 @@ public class Session implements Runnable {
                     updateQueue.putLast(request);
                 }
             } catch (IOException | InterruptedException | ClassNotFoundException e) {
+                if (e instanceof SocketException && e.getMessage().equals("Connection reset")) {
+                    running = false;
+                }
                 e.printStackTrace();
             }
+        }
+
+        if (socket.isClosed()) {
+            running = false;
         }
 
         // unblock all thread locked on updateQueue
@@ -149,7 +157,7 @@ public class Session implements Runnable {
         }
     }
 
-    public void logout(){
+    public void logout() {
         sendRequestWithoutResponse(new Request(Request.Types.LOGOUT));
     }
 
@@ -184,4 +192,13 @@ public class Session implements Runnable {
         }
     }
 
+    public boolean changePassword(String newPassword) {
+        Request request = new Request(Request.Types.USER_CHANGE_PASSWORD);
+        request.addParameter("password", newPassword);
+        Response response = sendRequest(request);
+        if (response.getCode() == Response.Codes.OK) {
+            return true;
+        }
+        return false;
+    }
 }

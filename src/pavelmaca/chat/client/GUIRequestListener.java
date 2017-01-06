@@ -60,6 +60,8 @@ public class GUIRequestListener implements Runnable {
                     break;
                 case CLOSE:
                     running = false;
+                    //chatWindow.disconect();
+                    break;
                 default:
                     System.out.println("Invalid request " + request.getType());
             }

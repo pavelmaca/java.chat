@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class Response implements Serializable {
 
     private Codes code;
-    private Object body;
+    private Object body = null;
 
     public Response(Codes code) {
         this.code = code;
@@ -24,6 +24,10 @@ public class Response implements Serializable {
 
     public <R> R getBody() {
         return (R) body;
+    }
+
+    public boolean hasBody() {
+        return body != null;
     }
 
     public enum Codes {

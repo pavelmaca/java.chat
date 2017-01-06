@@ -44,7 +44,7 @@ public class Request implements Serializable {
 
         // server -> client
         ROOM_USER_CONNECTED,
-        ROOM_USER_DISCONNECTED, DUMMY, LOGOUT,
+        ROOM_USER_DISCONNECTED, DUMMY, LOGOUT, USER_CHANGE_PASSWORD,
       /*  ROOM_USER_JOINED,
         ROOM_USER_LEAVE,*/
     }
