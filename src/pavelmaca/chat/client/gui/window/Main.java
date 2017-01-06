@@ -101,7 +101,7 @@ public class Main extends Window {
             //change window title to room name
             frame.setTitle(room.getRoomInfo().getName());
             System.out.println("selected room " + room.getRoomInfo().getId());
-            userList.show(room.getActiveUsers());
+            userList.show(room.getUserList());
             chatList.show(room.getMessages());
         });
 
@@ -181,7 +181,7 @@ public class Main extends Window {
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userConnected(userInfo);
         if (roomList.getSelected().equals(roomStatus)) {
-            userList.show(roomStatus.getActiveUsers());
+            userList.show(roomStatus.getUserList());
         }
         roomList.refresh();
     }
@@ -190,7 +190,7 @@ public class Main extends Window {
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userDisconnected(userId);
         if (roomList.getSelected().equals(roomStatus)) {
-            userList.show(roomStatus.getActiveUsers());
+            userList.show(roomStatus.getUserList());
         }
         roomList.refresh();
     }

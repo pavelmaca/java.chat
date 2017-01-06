@@ -19,38 +19,51 @@ public class UserListRenderer implements ListCellRenderer<UserInfo> {
     JPanel panel;
 
     JLabel adminLabel;
-    JLabel onlineLabel;
+    JLabel statusLabel;
 
-    ImageIcon onlineIcon;
-    ImageIcon offlineIcon;
-    ImageIcon admineIcon;
-    ImageIcon banIcon;
+    ImageIcon onlineIcon = null;
+    ImageIcon offlineIcon = null;
+    ImageIcon admineIcon = null;
+    ImageIcon banIcon = null;
 
     public UserListRenderer() {
         userNameLabel = new JLabel();
 
         adminLabel = new JLabel("");
         adminLabel.setBorder(new EmptyBorder(0, 0, 0, 5));
-        onlineLabel = new JLabel("");
+        statusLabel = new JLabel("");
 
         try {
             BufferedImage onlineImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/online.png"));
             onlineIcon = new ImageIcon(onlineImage);
-
-            BufferedImage offImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/offline.png"));
-            offlineIcon = new ImageIcon(offImage);
-
-            BufferedImage adminImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/admin.png"));
-            admineIcon = new ImageIcon(adminImage.getScaledInstance(16, 16, Image.SCALE_SMOOTH));
-
-            BufferedImage banImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/ban.png"));
-            banIcon = new ImageIcon(banImage.getScaledInstance(26, 26, Image.SCALE_SMOOTH));
-
-            onlineLabel.setIcon(banIcon);
-            adminLabel.setIcon(admineIcon);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        try {
+            BufferedImage offImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/offline.png"));
+            offlineIcon = new ImageIcon(offImage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            BufferedImage adminImage = null;
+            adminImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/admin.png"));
+            admineIcon = new ImageIcon(adminImage.getScaledInstance(16, 16, Image.SCALE_SMOOTH));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            BufferedImage banImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/ban.png"));
+            banIcon = new ImageIcon(banImage.getScaledInstance(26, 26, Image.SCALE_SMOOTH));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        adminLabel.setIcon(admineIcon);
+        adminLabel.setVisible(false);
 
         panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
@@ -59,16 +72,29 @@ public class UserListRenderer implements ListCellRenderer<UserInfo> {
         panel.add(userNameLabel);
         panel.add(Box.createHorizontalGlue());
         panel.add(adminLabel);
-        panel.add(onlineLabel);
+        panel.add(statusLabel);
     }
 
     @Override
     public Component getListCellRendererComponent(JList<? extends UserInfo> list, UserInfo user, int index,
                                                   boolean isSelected, boolean cellHasFocus) {
         userNameLabel.setText(user.getName());
-
         userNameLabel.setBackground(list.getBackground());
         userNameLabel.setForeground(list.getForeground());
+
+        adminLabel.setVisible(user.getRank().equals(UserInfo.Rank.OWNER));
+
+        switch (user.getStatus()) {
+            case ONLINE:
+                statusLabel.setIcon(onlineIcon);
+                break;
+            case OFFLINE:
+                statusLabel.setIcon(offlineIcon);
+                break;
+            case BANNED:
+                statusLabel.setIcon(banIcon);
+                break;
+        }
 
         return panel;
     }

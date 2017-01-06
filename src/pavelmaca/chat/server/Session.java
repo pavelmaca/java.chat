@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  */
 public class Session implements Runnable {
 
-    private User user;
+    private User currentUser;
 
     private States state;
 
@@ -106,7 +106,7 @@ public class Session implements Runnable {
     private boolean sendResponse(Response response) {
         // print outgoing error responses
         if (response.hasBody() && response.getCode() == Response.Codes.ERROR) {
-            System.out.println("user " + user.getId() + " - " + response.getBody());
+            System.out.println("user " + currentUser.getId() + " - " + response.getBody());
         }
 
         try {
@@ -137,14 +137,14 @@ public class Session implements Runnable {
         String username = request.getParam("username");
         String password = request.getParam("password");
 
-        user = userRepository.authenticate(username, password);
-        if (user == null) {
+        currentUser = userRepository.authenticate(username, password);
+        if (currentUser == null) {
             sendResponse(new Response(Response.Codes.ERROR));
             return;
         }
 
         HashMap<Integer, RoomStatus> activeRoomsStatus = new HashMap<>();
-        ArrayList<Room> activeRooms = roomRepository.getActiveRooms(user);
+        ArrayList<Room> activeRooms = roomRepository.getActiveRooms(currentUser);
         activeRooms.forEach(room -> {
             RoomStatus roomStatus = getRoomStatus(room);
             activeRoomsStatus.put(room.getId(), roomStatus);
@@ -159,15 +159,30 @@ public class Session implements Runnable {
     }
 
     private RoomStatus getRoomStatus(Room room) {
-        RoomThread roomThread = roomManager.joinRoomThread(room, user, this);
+        RoomThread roomThread = roomManager.joinRoomThread(room, currentUser, this);
 
-        List<UserInfo> connectedUsers = roomThread.getConnectedUsers()
-                .stream().map(User::getInfoModel).collect(Collectors.toList());
+        HashMap<Integer, User> connectedUsers = new HashMap<>();
+        roomThread.getConnectedUsers().forEach(user -> connectedUsers.put(user.getId(), user));
 
-        List<UserInfo> joinedUsers = roomRepository.getConnectedUsers(room)
-                .stream().map(User::getInfoModel).collect(Collectors.toList());
+        TreeSet<UserInfo> userList = new TreeSet<>();
+        roomRepository.getConnectedUsers(room).forEach(
+                user -> {
+                    UserInfo userInfo = user.getInfoModel();
+                    if (connectedUsers.containsKey(userInfo.getId())) {
+                        userInfo.setStatus(UserInfo.Status.ONLINE);
+                    } else {
+                        userInfo.setStatus(UserInfo.Status.OFFLINE);
+                    }
 
-        RoomStatus roomStatus = new RoomStatus(room.getInfoModel(), joinedUsers, connectedUsers, room.getOwner().getId());
+                    if (room.getOwner().getId() == user.getId()) {
+                        userInfo.setRank(UserInfo.Rank.OWNER);
+                    } else {
+                        userInfo.setRank(UserInfo.Rank.MEMEBER);
+                    }
+                    userList.add(userInfo);
+                });
+
+        RoomStatus roomStatus = new RoomStatus(room.getInfoModel(), userList);
 
         ArrayList<MessageInfo> messageHistory = messageRepository.getHistory(room, 50);
         messageHistory.forEach(roomStatus::addMessage);
@@ -178,7 +193,7 @@ public class Session implements Runnable {
     private void handleRetrieveAvailableRoomList(Request request) {
         System.out.println("room list request received");
 
-        ArrayList<RoomInfo> roomList = roomRepository.getAllAvailable(user);
+        ArrayList<RoomInfo> roomList = roomRepository.getAllAvailable(currentUser);
         Response response = new Response(Response.Codes.OK);
         response.setBody(roomList);
         sendResponse(response);
@@ -188,10 +203,10 @@ public class Session implements Runnable {
         System.out.println("new room request received");
 
         String roomName = request.getParam("name");
-        Room room = roomRepository.createRoom(roomName, user);
-        roomRepository.joinRoom(room, user);
+        Room room = roomRepository.createRoom(roomName, currentUser);
+        roomRepository.joinRoom(room, currentUser);
 
-        roomManager.joinRoomThread(room, user, this);
+        roomManager.joinRoomThread(room, currentUser, this);
 
         Response response = new Response(Response.Codes.OK);
         response.setBody(getRoomStatus(room));
@@ -205,7 +220,7 @@ public class Session implements Runnable {
         int roomId = request.getParam("roomId");
 
 
-        if (!roomManager.isConnected(user, roomId)) {
+        if (!roomManager.isConnected(currentUser, roomId)) {
             // user is not connected to this room!
             System.out.println("User is not connected to room " + roomId);
             return;
@@ -213,12 +228,12 @@ public class Session implements Runnable {
 
         RoomThread roomThread = roomManager.getThread(roomId);
 
-        Message message = messageRepository.save(text, roomThread.getRoom(), user);
+        Message message = messageRepository.save(text, roomThread.getRoom(), currentUser);
         if (message != null) {
             roomThread.receiveMessage(message);
         }
 
-        System.out.println("from: " + user.getName() + " message: " + text + " room:" + roomId);
+        System.out.println("from: " + currentUser.getName() + " message: " + text + " room:" + roomId);
     }
 
     private void handleJoinRoom(Request request) {
@@ -226,8 +241,8 @@ public class Session implements Runnable {
 
         int roomId = request.getParam("roomId");
 
-        Room room = roomRepository.joinRoom(roomId, user);
-        roomManager.joinRoomThread(room, user, this);
+        Room room = roomRepository.joinRoom(roomId, currentUser);
+        roomManager.joinRoomThread(room, currentUser, this);
 
         Response response = new Response(Response.Codes.OK);
         response.setBody(getRoomStatus(room));
@@ -236,8 +251,8 @@ public class Session implements Runnable {
 
     private void handleLogout(Request request) {
         state = States.GUEST;
-        roomManager.getAllConnectedThreads(user).parallelStream().forEach(roomThread -> {
-            roomThread.disconnect(user);
+        roomManager.getAllConnectedThreads(currentUser).parallelStream().forEach(roomThread -> {
+            roomThread.disconnect(currentUser);
             roomManager.purgeRoomThread(roomThread.getRoom());
         });
     }
@@ -249,7 +264,7 @@ public class Session implements Runnable {
     private void handleChangeUserPassword(Request request) {
         String newPassword = request.getParam("password");
         if (newPassword.length() > 0) {
-            boolean status = userRepository.changePassword(user, newPassword);
+            boolean status = userRepository.changePassword(currentUser, newPassword);
             if (status) {
                 sendResponse(new Response(Response.Codes.OK));
                 return;
@@ -292,8 +307,8 @@ public class Session implements Runnable {
             e.printStackTrace();
         }
 
-        roomManager.getAllConnectedThreads(user).parallelStream().forEach(roomThread -> {
-            roomThread.disconnect(user);
+        roomManager.getAllConnectedThreads(currentUser).parallelStream().forEach(roomThread -> {
+            roomThread.disconnect(currentUser);
             roomManager.purgeRoomThread(roomThread.getRoom());
         });
     }

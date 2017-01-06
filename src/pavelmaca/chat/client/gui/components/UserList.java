@@ -11,13 +11,13 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.TreeSet;
 
 /**
  * Created by Assassik on 05.01.2017.
  */
 public class UserList implements Factory<JPanel> {
     private JList<UserInfo> userJList;
-
 
     public JPanel create() {
         JPanel panel = new JPanel();
@@ -80,7 +80,7 @@ public class UserList implements Factory<JPanel> {
         userJList.setModel(userModel);
     }*/
 
-    public void show(List<UserInfo> userInfo) {
+    public void show(TreeSet<UserInfo> userInfo) {
         DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
         userInfo.forEach(userListModel::addElement);
         userJList.setModel(userListModel);
