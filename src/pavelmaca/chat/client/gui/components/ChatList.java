@@ -13,8 +13,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.*;
 
 /**
  * Created by Assassik on 06.01.2017.
@@ -86,7 +85,7 @@ public class ChatList implements Factory<JPanel> {
         sendBtn.addActionListener(action);
     }
 
-    public void show(ArrayList<MessageInfo> messages) {
+    public void show(java.util.List<MessageInfo> messages) {
         DefaultListModel<MessageInfo> chatListModel = new DefaultListModel<>();
         messages.forEach(chatListModel::addElement);
         chatJList.setModel(chatListModel);

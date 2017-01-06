@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -129,4 +130,42 @@ public class RoomRepository extends Repository {
         return rooms;
     }
 
+    public int countUsers(Room room) {
+        int count = 0;
+        try {
+            PreparedStatement statement = connection.prepareStatement("" +
+                    "SELECT COUNT(ru.user_id) AS total FROM room_user ru " +
+                    "WHERE ru.room_id = ? ");
+            statement.setInt(1, room.getId());
+
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("total");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+
+    public ArrayList<User> getConnectedUsers(Room room) {
+        ArrayList<User> users = new ArrayList<>();
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT u.id, u.name, u.password " +
+                    "FROM room_user ru " +
+                    "LEFT JOIN user u ON ru.user_id = u.id " +
+                    "WHERE ru.room_id =  ? ");
+            statement.setInt(1, room.getId());
+
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                users.add(new User(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3)));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return users;
+    }
 }

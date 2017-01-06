@@ -54,7 +54,7 @@ public class RoomListRenderer implements ListCellRenderer<RoomStatus> {
 
         nameLabel.setText(room.getRoomInfo().getName());
 
-        countLabel.setText(room.getActiveUsers().size() + "/x");
+        countLabel.setText(room.getActiveUsers().size() + "/" + room.getJoinedUsers().size());
 
         if (isSelected) {
             panel.setBackground(list.getSelectionBackground());

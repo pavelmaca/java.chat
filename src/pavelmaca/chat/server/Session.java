@@ -19,10 +19,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -145,10 +143,11 @@ public class Session implements Runnable {
             return;
         }
 
-        ArrayList<RoomStatus> activeRoomsStatus = new ArrayList<>();
+        HashMap<Integer, RoomStatus> activeRoomsStatus = new HashMap<>();
         ArrayList<Room> activeRooms = roomRepository.getActiveRooms(user);
         activeRooms.forEach(room -> {
-            activeRoomsStatus.add(getRoomStatus(room));
+            RoomStatus roomStatus = getRoomStatus(room);
+            activeRoomsStatus.put(room.getId(), roomStatus);
         });
 
 
@@ -161,14 +160,14 @@ public class Session implements Runnable {
 
     private RoomStatus getRoomStatus(Room room) {
         RoomThread roomThread = roomManager.joinRoomThread(room, user, this);
-        Set<User> activeUsers = roomThread.getConnectedUsers();
 
-        ArrayList<UserInfo> userInfos = new ArrayList<>();
-        activeUsers.forEach(user -> {
-            userInfos.add(user.getInfoModel());
-        });
+        List<UserInfo> connectedUsers = roomThread.getConnectedUsers()
+                .stream().map(User::getInfoModel).collect(Collectors.toList());
 
-        RoomStatus roomStatus = new RoomStatus(room.getInfoModel(), userInfos);
+        List<UserInfo> joinedUsers = roomRepository.getConnectedUsers(room)
+                .stream().map(User::getInfoModel).collect(Collectors.toList());
+
+        RoomStatus roomStatus = new RoomStatus(room.getInfoModel(), joinedUsers, connectedUsers, room.getOwner().getId());
 
         ArrayList<MessageInfo> messageHistory = messageRepository.getHistory(room, 50);
         messageHistory.forEach(roomStatus::addMessage);

@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -87,7 +88,7 @@ public class Session implements Runnable {
         }
     }
 
-    public ArrayList<RoomStatus> authenticate(String username, String password) {
+    public HashMap<Integer, RoomStatus> authenticate(String username, String password) {
         Request request = new Request(Request.Types.AUTHENTICATION);
         request.addParameter("username", username);
         request.addParameter("password", password);

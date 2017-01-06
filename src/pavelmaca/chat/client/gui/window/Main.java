@@ -18,6 +18,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -28,7 +29,7 @@ public class Main extends Window {
     //private User currentUser;
     private Session session;
 
-    private ArrayList<RoomStatus> roomStatuses = new ArrayList<>();
+    private HashMap<Integer, RoomStatus> roomStatuses = new HashMap<>();
 
     // GUI elements
     private UserList userList;
@@ -38,13 +39,13 @@ public class Main extends Window {
 
     private boolean closingForLogout = false;
 
-    public Main(Session session, ArrayList<RoomStatus> roomStatus, User currentUser) {
+    public Main(Session session, HashMap<Integer, RoomStatus> roomStatus, User currentUser) {
         super("Chat");
         //  this.currentUser = currentUser;
         this.session = session;
 
         roomStatuses = roomStatus;
-        roomStatuses.forEach(statusUpdate -> roomList.addRoom(statusUpdate));
+        roomStatuses.forEach((integer, statusUpdate) -> roomList.addRoom(statusUpdate));
         if (!roomStatuses.isEmpty()) {
             roomList.setSelected(roomStatuses.get(0));
         }
@@ -153,7 +154,7 @@ public class Main extends Window {
     }
 
     private void addRoom(RoomStatus room, boolean setSelected) {
-        roomStatuses.add(room);
+        roomStatuses.put(room.getRoomInfo().getId(), room);
         roomList.addRoom(room);
         if (setSelected) {
             roomList.setSelected(room);
@@ -177,47 +178,28 @@ public class Main extends Window {
     /// ----- User/server actions
 
     public void userConnected(int roomId, UserInfo userInfo) {
-        for (RoomStatus roomStatus : roomStatuses) {
-            if (roomStatus.getRoomInfo().getId() == roomId) {
-                roomStatus.getActiveUsers().add(userInfo);
-                if (roomList.getSelected().equals(roomStatus)) {
-                    userList.show(roomStatus.getActiveUsers());
-                }
-            }
+        RoomStatus roomStatus = roomStatuses.get(roomId);
+        roomStatus.userConnected(userInfo);
+        if (roomList.getSelected().equals(roomStatus)) {
+            userList.show(roomStatus.getActiveUsers());
         }
         roomList.refresh();
     }
 
     public void userDisconnected(int roomId, int userId) {
-        for (RoomStatus roomStatus : roomStatuses) {
-            if (roomStatus.getRoomInfo().getId() == roomId) {
-                // iterator to safely remove from array
-                Iterator<UserInfo> i = roomStatus.getActiveUsers().iterator();
-                while (i.hasNext()) {
-                    UserInfo userInfo = i.next();
-                    if (userInfo.getId() == userId) {
-                        i.remove();
-                        if (roomList.getSelected().equals(roomStatus)) {
-                            userList.show(roomStatus.getActiveUsers());
-                        }
-                        break;
-                    }
-                }
-                break;
-            }
+        RoomStatus roomStatus = roomStatuses.get(roomId);
+        roomStatus.userDisconnected(userId);
+        if (roomList.getSelected().equals(roomStatus)) {
+            userList.show(roomStatus.getActiveUsers());
         }
         roomList.refresh();
     }
 
     public void messageReceived(MessageInfo message) {
-        for (RoomStatus roomStatus : roomStatuses) {
-            if (roomStatus.getRoomInfo().getId() == message.getRoomId()) {
-                roomStatus.addMessage(message);
-                if (roomList.getSelected().equals(roomStatus)) {
-                    chatList.show(roomStatus.getMessages());
-                }
-                break;
-            }
+        RoomStatus roomStatus = roomStatuses.get(message.getRoomId());
+        roomStatus.addMessage(message);
+        if (roomList.getSelected().equals(roomStatus)) {
+            chatList.show(roomStatus.getMessages());
         }
     }
 

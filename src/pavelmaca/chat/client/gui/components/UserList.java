@@ -10,13 +10,14 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Assassik on 05.01.2017.
  */
 public class UserList implements Factory<JPanel> {
     private JList<UserInfo> userJList;
+
 
     public JPanel create() {
         JPanel panel = new JPanel();
@@ -79,7 +80,7 @@ public class UserList implements Factory<JPanel> {
         userJList.setModel(userModel);
     }*/
 
-    public void show(ArrayList<UserInfo> userInfo) {
+    public void show(List<UserInfo> userInfo) {
         DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
         userInfo.forEach(userListModel::addElement);
         userJList.setModel(userListModel);

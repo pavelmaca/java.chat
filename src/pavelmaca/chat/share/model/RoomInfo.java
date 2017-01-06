@@ -8,6 +8,7 @@ import java.io.Serializable;
 public class RoomInfo implements Serializable {
     private int id;
     private String name;
+    private int ownerId;
 
     public RoomInfo(int id, String name) {
         this.id = id;
