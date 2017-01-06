@@ -98,7 +98,7 @@ public class RoomList implements Factory<JPanel> {
     }
 
     public boolean isSelected() {
-        return roomJList.isSelectionEmpty();
+        return !roomJList.isSelectionEmpty();
     }
 
     public void setSelected(RoomStatus roomStatus) {

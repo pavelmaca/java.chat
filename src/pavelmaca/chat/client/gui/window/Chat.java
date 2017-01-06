@@ -122,6 +122,7 @@ public class Chat extends Window {
 
 
     public void addRoom(RoomStatus room, boolean setSelected) {
+        roomStatuses.add(room);
         roomList.addRoom(room);
         if (setSelected) {
             roomList.setSelected(room);
