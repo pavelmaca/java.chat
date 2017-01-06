@@ -1,12 +1,10 @@
 package pavelmaca.chat.client;
 
 import com.alee.laf.WebLookAndFeel;
-import pavelmaca.chat.client.gui.window.Chat;
-import pavelmaca.chat.client.gui.window.Connection;
-import pavelmaca.chat.client.gui.window.JoinRoom;
+import pavelmaca.chat.client.gui.window.Connect;
+import pavelmaca.chat.client.gui.window.Main;
 import pavelmaca.chat.client.gui.window.Login;
 import pavelmaca.chat.server.entity.User;
-import pavelmaca.chat.share.model.RoomInfo;
 import pavelmaca.chat.share.model.RoomStatus;
 
 import javax.swing.*;
@@ -45,13 +43,13 @@ public class ClientApp implements Runnable {
     }
 
     private void openConnectionWindow() {
-        Connection connectionWindow = new Connection();
-        connectionWindow.setDefaults(
+        Connect connectWindow = new Connect();
+        connectWindow.setDefaults(
                 properties.getProperty("host", ""),
                 properties.getProperty("port", ""),
                 Boolean.valueOf(properties.getProperty("save", Boolean.toString(true)))
         );
-        connectionWindow.onSubmit((String serverIp, Integer serverPort, Boolean save) -> {
+        connectWindow.onSubmit((String serverIp, Integer serverPort, Boolean save) -> {
             if (session.connect(serverIp, serverPort)) {
                 System.out.println("connection success");
 
@@ -65,10 +63,10 @@ public class ClientApp implements Runnable {
                 properties.setProperty("save", Boolean.toString(save));
                 Configuration.saveConfig(properties);
 
-                connectionWindow.close();
+                connectWindow.close();
                 openAuthenticationWindow();
             } else {
-                connectionWindow.showError("Can't connect to server.");
+                connectWindow.showError("Can't connect to server.");
             }
         });
     }
@@ -96,66 +94,30 @@ public class ClientApp implements Runnable {
 
     }
 
-    private void openChatWindow(ArrayList<RoomStatus> roomStatuInfos, User identity) {
+    private void openChatWindow(ArrayList<RoomStatus> roomStatusInfo, User identity) {
         if (identity == null) {
             openAuthenticationWindow();
             return;
         }
 
-        Chat chatWindow = new Chat(session, roomStatuInfos, identity);
-        chatWindow.addWindowsCloseListener((isLogout) -> {
-            System.out.println("Closing chat window");
-            if (isLogout) {
-                session.logout();
-            } else {
-                session.close();
-            }
-        });
-
-        chatWindow.onMessageSubmit((text, roomId) -> {
-            session.sendMessage(text, roomId);
-        });
-
-        chatWindow.addDisconnectListener(() -> {
-            chatWindow.close();
+        Main mainWindow = new Main(session, roomStatusInfo, identity);
+        mainWindow.addDisconnectListener(() -> {
+            mainWindow.close();
             openConnectionWindow();
         });
 
-        chatWindow.addLogoutListener(() -> {
-            chatWindow.close();
+        mainWindow.addLogoutListener(() -> {
+            mainWindow.close();
             openAuthenticationWindow();
         });
 
         //  System.out.println("event thread: " + SwingUtilities.isEventDispatchThread());
 
-        //update listener
-        new Thread(new GUIRequestListener(chatWindow, session)).start();
+        // request listener
+        new Thread(new GUIRequestListener(mainWindow, session)).start();
 
-        chatWindow.onJoinRoomClicked((e) -> openJoinRoomWindow(chatWindow));
+        //mainWindow.onJoinRoomClicked((e) -> openJoinRoomWindow(mainWindow));
     }
 
-    private void openJoinRoomWindow(Chat chatWindow) {
-        ArrayList<RoomInfo> roomList = session.getAvailableRoomList();
-        System.out.println("event thred: " +
-                SwingUtilities.isEventDispatchThread());
 
-        JoinRoom joinRoomWindow = new JoinRoom(roomList);
-        joinRoomWindow.onJoinSubmit(roomId -> {
-            RoomStatus room = session.joinRoom(roomId);
-            if (room != null) {
-                chatWindow.addRoom(room, true);
-                joinRoomWindow.close();
-            }
-            // TODO room authentication
-        });
-
-        joinRoomWindow.onNewRoomSubmit(roomName -> {
-            RoomStatus room = session.createRoom(roomName);
-            if (room != null) {
-                chatWindow.addRoom(room, true);
-                joinRoomWindow.close();
-            }
-        });
-
-    }
 }

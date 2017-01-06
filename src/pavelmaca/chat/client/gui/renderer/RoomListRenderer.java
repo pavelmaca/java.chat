@@ -36,7 +36,7 @@ public class RoomListRenderer implements ListCellRenderer<RoomStatus> {
         JPanel rightComp = new JPanel();
         rightComp.setLayout(new BoxLayout(rightComp, BoxLayout.X_AXIS));
         rightComp.setOpaque(false);
-        countLabel = new JLabel("10/10");
+        countLabel = new JLabel("");
         countLabel.setFont(new Font(nameFont.getFontName(), Font.PLAIN, nameFont.getSize() - 2));
         countLabel.setOpaque(false);
         rightComp.add(Box.createHorizontalGlue());
@@ -54,6 +54,7 @@ public class RoomListRenderer implements ListCellRenderer<RoomStatus> {
 
         nameLabel.setText(room.getRoomInfo().getName());
 
+        countLabel.setText(room.getActiveUsers().size() + "/x");
 
         if (isSelected) {
             panel.setBackground(list.getSelectionBackground());

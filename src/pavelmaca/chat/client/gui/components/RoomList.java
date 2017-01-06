@@ -121,5 +121,9 @@ public class RoomList implements Factory<JPanel> {
         });
     }
 
+    public void refresh(){
+        roomJList.repaint();
+    }
+
 
 }

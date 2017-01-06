@@ -1,6 +1,6 @@
 package pavelmaca.chat.client;
 
-import pavelmaca.chat.client.gui.window.Chat;
+import pavelmaca.chat.client.gui.window.Main;
 import pavelmaca.chat.share.comunication.Request;
 
 import javax.swing.*;
@@ -10,13 +10,13 @@ import javax.swing.*;
  */
 public class GUIRequestListener implements Runnable {
 
-    Chat chatWindow;
+    Main mainWindow;
     Session session;
 
     boolean running;
 
-    public GUIRequestListener(Chat chatWindow, Session session) {
-        this.chatWindow = chatWindow;
+    public GUIRequestListener(Main mainWindow, Session session) {
+        this.mainWindow = mainWindow;
         this.session = session;
     }
 
@@ -44,23 +44,23 @@ public class GUIRequestListener implements Runnable {
 
             switch (request.getType()) {
                 case ROOM_USER_CONNECTED:
-                    chatWindow.userConnected(
+                    mainWindow.userConnected(
                             request.getParam("roomId"),
                             request.getParam("user")
                     );
                     break;
                 case ROOM_USER_DISCONNECTED:
-                    chatWindow.userDisconnected(
+                    mainWindow.userDisconnected(
                             request.getParam("roomId"),
                             request.getParam("userId")
                     );
                     break;
                 case MESSAGE_NEW:
-                    chatWindow.messageRecieved(request.getParam("message"));
+                    mainWindow.messageReceived(request.getParam("message"));
                     break;
                 case CLOSE:
                     running = false;
-                    //chatWindow.disconect();
+                    //mainWindow.disconect();
                     break;
                 default:
                     System.out.println("Invalid request " + request.getType());

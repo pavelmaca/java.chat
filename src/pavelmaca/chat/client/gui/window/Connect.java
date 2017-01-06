@@ -8,7 +8,7 @@ import java.awt.*;
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
-public class Connection extends Window {
+public class Connect extends Window {
 
 
     private JTextField serverIP;
@@ -19,7 +19,7 @@ public class Connection extends Window {
     private JCheckBox saveCheckBox;
     private JLabel errorLabel;
 
-    public Connection() {
+    public Connect() {
         super("Connection setting");
     }
 
