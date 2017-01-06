@@ -64,9 +64,14 @@ public class RoomStatus implements Serializable {
         for (UserInfo info : userList) {
             if (info.equals(userInfo)) {
                 info.setStatus(UserInfo.Status.ONLINE);
-                break;
+                return;
             }
         }
+
+        // new user
+        userInfo.setStatus(UserInfo.Status.ONLINE);
+        userList.add(userInfo);
+
     }
 
     public void userDisconnected(int userId) {
