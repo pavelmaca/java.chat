@@ -10,6 +10,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -45,7 +47,8 @@ public class MessageRepository extends Repository {
                     "SELECT m.content, m.author_id, m.timestamp, u.name AS author_name, m.room_id FROM message m " +
                     "JOIN user u ON u.id = m.author_id " +
                     "WHERE m.room_id = ? " +
-                    "LIMIT ?");
+                    "ORDER BY m.timestamp DESC " +
+                    "LIMIT ? ");
             statement.setInt(1, room.getId());
             statement.setInt(2, limit);
 
@@ -54,7 +57,7 @@ public class MessageRepository extends Repository {
                 MessageInfo messageInfo = new MessageInfo(
                         resultSet.getString("content"),
                         resultSet.getInt("author_id"),
-                        resultSet.getDate("timestamp"),
+                        resultSet.getTimestamp("timestamp"),
                         resultSet.getString("author_name"),
                         resultSet.getInt("room_id")
                 );
@@ -63,6 +66,10 @@ public class MessageRepository extends Repository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        // revers message order
+        Collections.reverse(messages);
+
         return messages;
     }
 }

@@ -191,7 +191,6 @@ public class Chat extends Window {
                 }
             }
         }
-        ;
     }
 
     public void userDisconnected(int roomId, int userId) {
@@ -234,7 +233,7 @@ public class Chat extends Window {
     }
 
     public void addDisconnectListener(Lambdas.Function0 callback) {
-       // disconnectListeners.add(callback);
+        // disconnectListeners.add(callback);
         headerMenu.addDisconnectActionListener(e -> callback.apply());
     }
 
