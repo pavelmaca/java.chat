@@ -9,6 +9,8 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * Created by Assassik on 05.01.2017.
@@ -16,7 +18,7 @@ import java.awt.event.ActionListener;
 public class RoomList implements Factory<JPanel> {
 
     final private DefaultListModel<RoomStatus> roomListModel = new DefaultListModel<>();
-    private JList<RoomStatus> roomJList =  new JList<>();
+    private JList<RoomStatus> roomJList = new JList<>();
     private JButton joinRoomBtn = new JButton("Join room");
 
     @Override
@@ -34,6 +36,44 @@ public class RoomList implements Factory<JPanel> {
         //roomJList.setFixedCellHeight(25);
         roomJList.setFixedCellWidth(100);
         roomJList.setCellRenderer(new RoomListRenderer());
+
+        JPopupMenu popupMenu = new JPopupMenu();
+        JMenuItem disconnectRoom = new JMenuItem("Disconnect");
+        popupMenu.add(disconnectRoom);
+        JMenuItem renameRoom = new JMenuItem("Rename");
+        popupMenu.add(renameRoom);
+        JMenuItem changePasswordRoom = new JMenuItem("Change password");
+        popupMenu.add(changePasswordRoom);
+        JMenuItem deleteRoom = new JMenuItem("Delete");
+        popupMenu.add(deleteRoom);
+
+        //   roomJList.setComponentPopupMenu(popupMenu);
+        Lambdas.Function1<MouseEvent> event = (e) -> {
+            if (e.isPopupTrigger()) { //if the event shows the menu
+                int index = roomJList.locationToIndex(e.getPoint());
+
+                // check if event is triggered on cell
+                if (index < 0 || !roomJList.getCellBounds(index, index).intersects(e.getX(), e.getY(), 1, 1)) {
+                    return;
+                }
+
+                roomJList.setSelectedIndex(index); //select the item
+                popupMenu.show(roomJList, e.getX(), e.getY()); //and show the menu
+            }
+        };
+        roomJList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mousePressed(e);
+                event.apply(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                super.mouseReleased(e);
+                event.apply(e);
+            }
+        });
 
      /*   roomJList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {

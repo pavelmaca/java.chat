@@ -33,7 +33,7 @@ public class Session implements Runnable {
     @Override
     public void run() {
         running = true;
-        while (running) {
+        while (running && !socket.isClosed()) {
             try {
                 Object inputObject = inputStream.readObject();
 
