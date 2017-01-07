@@ -263,4 +263,24 @@ public class Session implements Runnable {
             throw new ResponseException(response);
         }
     }
+
+    public void userBan(int roomId, int userId) throws ResponseException {
+        Request request = new Request(Request.Types.ROOM_USER_BAN);
+        request.addParameter("roomId", roomId);
+        request.addParameter("userId", userId);
+        Response response = sendRequest(request);
+        if (response.getCode() != Response.Codes.OK) {
+            throw new ResponseException(response);
+        }
+    }
+
+    public void userRemoveBan(int roomId, int userId) throws ResponseException {
+        Request request = new Request(Request.Types.ROOM_USER_BAN_REMOVE);
+        request.addParameter("roomId", roomId);
+        request.addParameter("userId", userId);
+        Response response = sendRequest(request);
+        if (response.getCode() != Response.Codes.OK) {
+            throw new ResponseException(response);
+        }
+    }
 }

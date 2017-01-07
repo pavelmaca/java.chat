@@ -99,23 +99,26 @@ public class RoomThread implements Runnable {
         }
     }
 
-    public void leave(User user) {
+    public void leave(User user, boolean force) {
         synchronized (activeUsers) {
             System.out.println("user " + user.getName() + " leave from room " + room.getId());
             Request request = new Request(Request.Types.ROOM_USER_LEAVE);
             request.addParameter("roomId", room.getId());
             request.addParameter("userId", user.getId());
-            request.addParameter("authorId", user.getId());
+            if(!force){
+                request.addParameter("authorId", user.getId());
+            }
+
             try {
                 requestQueue.putLast(request);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            activeUsers.remove(user);
+          /*  activeUsers.remove(user);
             if (activeUsers.isEmpty()) {
                 stopThread();
-            }
+            }*/
         }
     }
 
@@ -161,7 +164,7 @@ public class RoomThread implements Runnable {
                         }
 
                         // remove user from queue after sending room disconnect
-                        if (request.getType() == Request.Types.ROOM_USER_DISCONNECTED && userSessionEntry.getKey().getId() == (Integer) request.getParam("userId")) {
+                        if ((request.getType() == Request.Types.ROOM_USER_DISCONNECTED ||  request.getType() == Request.Types.ROOM_USER_LEAVE) && userSessionEntry.getKey().getId() == (Integer) request.getParam("userId")) {
                             iterator.remove();
                         }
                     }
@@ -199,6 +202,37 @@ public class RoomThread implements Runnable {
             for (Object user : users) {
                 disconnect((User) user, true);
             }
+        }
+    }
+
+    public void banUser(User banUser) {
+        // disconnect user, if is connected
+        if (hasUser(banUser)) {
+            leave(banUser, true);
+        }
+
+        // notify others about ban
+        Request request = new Request(Request.Types.ROOM_USER_BAN);
+        request.addParameter("roomId", room.getId());
+        UserInfo banUserInfo = banUser.getInfoModel();
+        banUserInfo.setStatus(UserInfo.Status.BANNED);
+        request.addParameter("user", banUserInfo);
+        try {
+            requestQueue.putLast(request);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removeUserBan(int userId) {
+        // notify others about ban removal
+        Request request = new Request(Request.Types.ROOM_USER_BAN_REMOVE);
+        request.addParameter("roomId", room.getId());
+        request.addParameter("userId", userId);
+        try {
+            requestQueue.putLast(request);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

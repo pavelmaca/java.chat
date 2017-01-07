@@ -91,4 +91,22 @@ public class RoomStatus implements Serializable {
         }
         return null;
     }
+
+    public void userBan(UserInfo userInfo) {
+        userInfo.setStatus(UserInfo.Status.BANNED);
+        userList.add(userInfo);
+    }
+
+    public void userRemoveBan(int userId) {
+        userLeave(userId); // just remove from list
+    }
+
+    /**
+     * Count all users connected to room, except banned ones
+     *
+     * @return
+     */
+    public int countUsers() {
+        return (int) userList.stream().filter(userInfo -> userInfo.getStatus() != UserInfo.Status.BANNED).count();
+    }
 }

@@ -66,6 +66,8 @@ public class Session implements Runnable {
         requestHandlers.put(Request.Types.ROOM_CHANGE_PASSWORD, this::handleChangeRoomPassword);
         requestHandlers.put(Request.Types.ROOM_REMOVE_PASSWORD, this::handleRemoveRoomPassword);
         requestHandlers.put(Request.Types.ROOM_DELETE, this::handleDeleteRoom);
+        requestHandlers.put(Request.Types.ROOM_USER_BAN, this::handleBanRoomUser);
+        requestHandlers.put(Request.Types.ROOM_USER_BAN_REMOVE, this::handleRemoveBanRoomUser);
     }
 
 
@@ -193,6 +195,9 @@ public class Session implements Runnable {
                     userList.add(userInfo);
                 });
 
+        //load banned users
+        userList.addAll(roomRepository.getBannedUsers(room));
+
         RoomStatus roomStatus = new RoomStatus(room.getInfoModel(), userList);
 
         ArrayList<MessageInfo> messageHistory = messageRepository.getHistory(room, 50);
@@ -278,10 +283,10 @@ public class Session implements Runnable {
 
         int roomId = request.getParam("roomId");
 
-        roomRepository.leaveRoom(roomId, currentUser);
+        roomRepository.leaveRoom(roomId, currentUser.getId());
 
         RoomThread roomThread = roomManager.getThread(roomId);
-        roomThread.leave(currentUser);
+        roomThread.leave(currentUser, false);
         roomManager.purgeRoomThread(roomThread.getRoom());
     }
 
@@ -381,6 +386,47 @@ public class Session implements Runnable {
         sendResponse(new ErrorResponse("Cant delete room, try again later."));
     }
 
+    private void handleRemoveBanRoomUser(Request request) {
+        int roomId = request.getParam("roomId");
+        int userId = request.getParam("userId");
+        RoomThread roomThread = roomManager.getThread(roomId);
+        Room room = roomThread.getRoom();
+        if (room.getOwner().getId() == currentUser.getId()) {
+            boolean status = roomRepository.removeBanUser(room, userId);
+            if (status) {
+                roomThread.removeUserBan(userId);
+                sendResponse(new Response(Response.Codes.OK));
+                return;
+            }
+        } else {
+            sendResponse(new ErrorResponse("Not allowed"));
+            return;
+        }
+
+        sendResponse(new ErrorResponse("Cant ban user, try again later."));
+    }
+
+    private void handleBanRoomUser(Request request) {
+        int roomId = request.getParam("roomId");
+        int userId = request.getParam("userId");
+        RoomThread roomThread = roomManager.getThread(roomId);
+        Room room = roomThread.getRoom();
+        if (room.getOwner().getId() == currentUser.getId()) {
+            boolean status = roomRepository.banUser(room, userId);
+            if (status) {
+                User bannedUser = userRepository.findOneById(userId);
+                roomThread.banUser(bannedUser);
+                sendResponse(new Response(Response.Codes.OK));
+                return;
+            }
+        } else {
+            sendResponse(new ErrorResponse("Not allowed"));
+            return;
+        }
+
+        sendResponse(new ErrorResponse("Cant ban user, try again later."));
+    }
+
 
     public void sendCommand(Request request) {
         try {
@@ -445,6 +491,8 @@ public class Session implements Runnable {
                 Request.Types.ROOM_CHANGE_PASSWORD,
                 Request.Types.ROOM_REMOVE_PASSWORD,
                 Request.Types.ROOM_DELETE,
+                Request.Types.ROOM_USER_BAN,
+                Request.Types.ROOM_USER_BAN_REMOVE,
         });
 
         protected Request.Types[] allowedCommands;

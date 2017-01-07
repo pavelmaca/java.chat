@@ -189,6 +189,22 @@ public class Main extends Window {
             });
         });
 
+        userList.addBanActionListener(userInfo -> {
+            try {
+                session.userBan(roomList.getSelected().getRoomInfo().getId(), userInfo.getId());
+            } catch (ResponseException e) {
+                showError(e.getMessage());
+            }
+        });
+
+        userList.addRemoveBanActionListener(userInfo -> {
+            try {
+                session.userRemoveBan(roomList.getSelected().getRoomInfo().getId(), userInfo.getId());
+            } catch (ResponseException e) {
+                showError(e.getMessage());
+            }
+        });
+
         Container contentPane = frame.getContentPane();
 
         JSplitPane chatSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -283,10 +299,6 @@ public class Main extends Window {
 
     public void userDisconnected(int roomId, int userId) {
         RoomStatus roomStatus = roomStatuses.get(roomId);
-        if (identity.getId() == userId) {
-            removeRoom(roomStatus);
-            return;
-        }
         roomStatus.userDisconnected(userId);
         if (roomList.getSelected().equals(roomStatus)) {
             userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));
@@ -308,12 +320,35 @@ public class Main extends Window {
         if (roomList.getSelected().equals(roomStatus)) {
             userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));
         }
+
+        // i was banned !
+        if (identity.getId() == userId) {
+            removeRoom(roomStatus);
+        }
         roomList.refresh();
     }
 
     public void roomChangeName(int roomId, String newName) {
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.getRoomInfo().setName(newName);
+        roomList.refresh();
+    }
+
+    public void roomBanUser(int roomId, UserInfo user) {
+        RoomStatus roomStatus = roomStatuses.get(roomId);
+        roomStatus.userBan(user);
+        if (roomList.getSelected().equals(roomStatus)) {
+            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));
+        }
+        roomList.refresh();
+    }
+
+    public void roomRemoveBanUser(int roomId, int userId) {
+        RoomStatus roomStatus = roomStatuses.get(roomId);
+        roomStatus.userRemoveBan(userId);
+        if (roomList.getSelected().equals(roomStatus)) {
+            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));
+        }
         roomList.refresh();
     }
 }

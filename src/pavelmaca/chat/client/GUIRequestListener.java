@@ -70,8 +70,17 @@ public class GUIRequestListener implements Runnable {
                     //mainWindow.disconect();
                     break;
                 case ROOM_CHANHE_NAME:
-                    mainWindow.roomChangeName( request.getParam("roomId"),
+                    mainWindow.roomChangeName(request.getParam("roomId"),
                             request.getParam("name"));
+                    break;
+
+                case ROOM_USER_BAN:
+                    mainWindow.roomBanUser(request.getParam("roomId"),
+                            request.getParam("user"));
+                    break;
+                case ROOM_USER_BAN_REMOVE:
+                    mainWindow.roomRemoveBanUser(request.getParam("roomId"),
+                            request.getParam("userId"));
                     break;
                 default:
                     System.out.println("Invalid request " + request.getType());

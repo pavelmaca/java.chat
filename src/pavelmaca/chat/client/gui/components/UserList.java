@@ -1,7 +1,6 @@
 package pavelmaca.chat.client.gui.components;
 
 import pavelmaca.chat.client.gui.renderer.UserListRenderer;
-import pavelmaca.chat.share.Factory;
 import pavelmaca.chat.share.Lambdas;
 import pavelmaca.chat.share.model.UserInfo;
 
@@ -10,7 +9,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
 import java.util.TreeSet;
 
 /**
@@ -19,8 +17,8 @@ import java.util.TreeSet;
 public class UserList implements IComponent<JPanel> {
     private JList<UserInfo> userJList;
     JPopupMenu popupMenu;
-    JMenuItem banPopupItem;
-    JMenuItem removeBanPopupItem;
+    JMenuItem banItem;
+    JMenuItem removeBanItem;
 
     private UserInfo currentUserInRoom;
 
@@ -47,10 +45,10 @@ public class UserList implements IComponent<JPanel> {
         panel.setMinimumSize(minimumSize);
 
         popupMenu = new JPopupMenu();
-        banPopupItem = new JMenuItem("Ban");
-        popupMenu.add(banPopupItem);
-        removeBanPopupItem = new JMenuItem("Remove ban");
-        popupMenu.add(removeBanPopupItem);
+        banItem = new JMenuItem("Ban");
+        popupMenu.add(banItem);
+        removeBanItem = new JMenuItem("Remove ban");
+        popupMenu.add(removeBanItem);
 
         //   roomJList.setComponentPopupMenu(popupMenu);
         Lambdas.Function1<MouseEvent> event = (e) -> {
@@ -67,8 +65,8 @@ public class UserList implements IComponent<JPanel> {
                 if (selectedUser.equals(currentUserInRoom)) {
                     return;
                 }
-                banPopupItem.setVisible(selectedUser.getStatus() != UserInfo.Status.BANNED);
-                removeBanPopupItem.setVisible(selectedUser.getStatus() == UserInfo.Status.BANNED);
+                banItem.setVisible(selectedUser.getStatus() != UserInfo.Status.BANNED);
+                removeBanItem.setVisible(selectedUser.getStatus() == UserInfo.Status.BANNED);
 
                 popupMenu.show(userJList, e.getX(), e.getY()); //and show the menu
             }
@@ -103,5 +101,23 @@ public class UserList implements IComponent<JPanel> {
         userInfo.forEach(userListModel::addElement);
         userJList.setModel(userListModel);
     }
+
+    public void refresh() {
+        userJList.repaint();
+        userJList.updateUI();
+    }
+
+    public void addBanActionListener(Lambdas.Function1<UserInfo> listener) {
+        banItem.addActionListener(e -> {
+            listener.apply(userJList.getSelectedValue());
+        });
+    }
+
+    public void addRemoveBanActionListener(Lambdas.Function1<UserInfo> listener) {
+        removeBanItem.addActionListener(e -> {
+            listener.apply(userJList.getSelectedValue());
+        });
+    }
+
 
 }

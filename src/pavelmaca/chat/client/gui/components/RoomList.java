@@ -149,6 +149,7 @@ public class RoomList implements IComponent<JPanel> {
 
     public void refresh() {
         roomJList.repaint();
+        roomJList.updateUI();
     }
 
 

@@ -3,6 +3,7 @@ package pavelmaca.chat.server.repository;
 import pavelmaca.chat.server.entity.Room;
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.RoomInfo;
+import pavelmaca.chat.share.model.UserInfo;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -85,11 +86,11 @@ public class RoomRepository extends Repository {
         return null;
     }
 
-    public void leaveRoom(int roomId, User user) {
+    public void leaveRoom(int roomId, int userId) {
         try {
             PreparedStatement statement = connection.prepareStatement("DELETE FROM room_user WHERE room_id = ? AND user_id = ?");
             statement.setInt(1, roomId);
-            statement.setInt(2, user.getId());
+            statement.setInt(2, userId);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -173,6 +174,31 @@ public class RoomRepository extends Repository {
         return users;
     }
 
+    public ArrayList<UserInfo> getBannedUsers(Room room) {
+        ArrayList<UserInfo> users = new ArrayList<>();
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT u.id, u.name " +
+                    "FROM room_block rb " +
+                    "LEFT JOIN user u ON rb.user_id = u.id " +
+                    "WHERE rb.room_id =  ? ");
+            statement.setInt(1, room.getId());
+
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                UserInfo userInfo = new UserInfo(id, name);
+                userInfo.setStatus(UserInfo.Status.BANNED);
+                users.add(userInfo);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return users;
+    }
+
     public boolean changeName(Room room, String newName) {
         try {
             PreparedStatement statement = connection.prepareStatement("UPDATE room SET name = ? WHERE id = ? ");
@@ -224,6 +250,36 @@ public class RoomRepository extends Repository {
             statement.setInt(1, 1);
             statement.setInt(2, room.getId());
 
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean banUser(Room room, int userId) {
+        leaveRoom(room.getId(), userId);
+
+        try {
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO room_block (room_id, user_id) VALUES(?, ?)");
+            statement.setInt(1, room.getId());
+            statement.setInt(2, userId);
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean removeBanUser(Room room, int userId) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("DELETE FROM room_block WHERE room_id = ? AND user_id = ?");
+            statement.setInt(1, room.getId());
+            statement.setInt(2, userId);
             statement.executeUpdate();
 
             return true;
