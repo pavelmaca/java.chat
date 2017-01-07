@@ -4,12 +4,10 @@ import com.alee.laf.WebLookAndFeel;
 import pavelmaca.chat.client.gui.window.Connect;
 import pavelmaca.chat.client.gui.window.Main;
 import pavelmaca.chat.client.gui.window.Login;
-import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.RoomStatus;
 import pavelmaca.chat.share.model.UserInfo;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -88,7 +86,7 @@ public class ClientApp implements Runnable {
 
             HashMap<Integer, RoomStatus> roomStatusInfo = session.getStatus();
 
-            openChatWindow(roomStatusInfo, identity);
+            openMainWindow(roomStatusInfo, identity);
         });
         loginWindow.onCancel(() -> {
             loginWindow.close();
@@ -98,7 +96,7 @@ public class ClientApp implements Runnable {
 
     }
 
-    private void openChatWindow(HashMap<Integer, RoomStatus> roomStatusInfo, UserInfo identity) {
+    private void openMainWindow(HashMap<Integer, RoomStatus> roomStatusInfo, UserInfo identity) {
         if (identity == null) {
             openAuthenticationWindow();
             return;

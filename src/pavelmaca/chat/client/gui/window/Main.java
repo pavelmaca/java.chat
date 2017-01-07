@@ -23,7 +23,7 @@ import java.util.HashMap;
  */
 public class Main extends Window {
 
-    private UserInfo currentUser;
+    private UserInfo identity;
     private Session session;
 
     private HashMap<Integer, RoomStatus> roomStatuses = new HashMap<>();
@@ -36,20 +36,21 @@ public class Main extends Window {
 
     private boolean closingForLogout = false;
 
-    public Main(Session session, HashMap<Integer, RoomStatus> roomStatus, UserInfo currentUser) {
+    public Main(Session session, HashMap<Integer, RoomStatus> roomStatus, UserInfo identity) {
         super("Chat");
-        this.currentUser = currentUser;
+        this.identity = identity;
         this.session = session;
 
-        roomList.setCurrentUser(currentUser);
+        roomList.setCurrentUser(identity);
 
         roomStatuses = roomStatus;
         roomStatuses.forEach((integer, statusUpdate) -> roomList.addRoom(statusUpdate));
         if (!roomStatuses.isEmpty()) {
-            roomList.setSelected(roomStatuses.get(0));
+            RoomStatus firstRoom = roomStatus.entrySet().iterator().next().getValue();
+            roomList.setSelected(firstRoom);
         }
 
-        chatList.setCurrentUser(currentUser);
+        chatList.setCurrentUser(identity);
         chatList.addMessageSubmitListener((text) -> {
             if (!roomList.isSelected()) {
                 return;
@@ -61,7 +62,7 @@ public class Main extends Window {
             // send message to server
             session.sendMessage(text, selectedRoomId);
 
-            MessageInfo messageInfo = new MessageInfo(text, currentUser.getId(), new Date(), currentUser.getName(), selectedRoomId);
+            MessageInfo messageInfo = new MessageInfo(text, identity.getId(), new Date(), identity.getName(), selectedRoomId);
             messageReceived(messageInfo); //act as message was received from server
         });
 
@@ -100,7 +101,7 @@ public class Main extends Window {
             //change window title to room name
             frame.setTitle(room.getRoomInfo().getName());
             System.out.println("selected room " + room.getRoomInfo().getId());
-            userList.show(room.getUserList(), room.getUserInfo(currentUser));
+            userList.show(room.getUserList(), room.getUserInfo(identity));
             chatList.show(room.getMessages());
         });
 
@@ -180,7 +181,7 @@ public class Main extends Window {
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userConnected(userInfo);
         if (roomList.getSelected().equals(roomStatus)) {
-            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(currentUser));
+            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));
         }
         roomList.refresh();
     }
@@ -189,7 +190,7 @@ public class Main extends Window {
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userDisconnected(userId);
         if (roomList.getSelected().equals(roomStatus)) {
-            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(currentUser));
+            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));
         }
         roomList.refresh();
     }

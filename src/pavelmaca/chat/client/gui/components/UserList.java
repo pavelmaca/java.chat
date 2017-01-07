@@ -92,8 +92,8 @@ public class UserList implements Factory<JPanel> {
         userJList.setModel(userModel);
     }*/
 
-    public void show(TreeSet<UserInfo> userInfo, UserInfo currentUserInRoom) {
-        this.currentUserInRoom = currentUserInRoom;
+    public void show(TreeSet<UserInfo> userInfo, UserInfo identity) {
+        this.currentUserInRoom = identity;
         DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
         userInfo.forEach(userListModel::addElement);
         userJList.setModel(userListModel);
