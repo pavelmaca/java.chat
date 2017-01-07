@@ -1,4 +1,4 @@
--- Adminer 4.2.5 MySQL dump
+-- Adminer 4.2.4 MySQL dump
 
 SET NAMES utf8;
 SET time_zone = '+00:00';
@@ -25,6 +25,7 @@ CREATE TABLE `room` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `owner_id` int(11) NOT NULL,
+  `password` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `owner` (`owner_id`),
   CONSTRAINT `room_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `user` (`id`)
@@ -68,4 +69,4 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
--- 2016-12-27 23:09:52
+-- 2017-01-07 14:16:17
