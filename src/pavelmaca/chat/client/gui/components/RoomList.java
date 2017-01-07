@@ -19,15 +19,18 @@ import java.awt.event.MouseEvent;
 public class RoomList implements IComponent<JPanel> {
 
     final private DefaultListModel<RoomStatus> roomListModel = new DefaultListModel<>();
+
     private JList<RoomStatus> roomJList = new JList<>();
     private JButton joinRoomBtn = new JButton("Join room");
 
-    JMenuItem leaveRoomItem;
-    JMenuItem renameRoomItem;
-    JMenuItem changePasswordRoomItem;
-    JMenuItem deleteRoomItem;
+    private JMenuItem leaveRoomItem;
+    private JMenuItem renameRoomItem;
+    private JMenuItem removePasswordRoomItem;
+    private JMenuItem setPasswordRoomItem;
+    private JMenuItem changePasswordRoomItem;
+    private JMenuItem deleteRoomItem;
 
-    JPanel panel;
+    private JPanel panel;
 
     private UserInfo currentUser = null;
 
@@ -51,8 +54,16 @@ public class RoomList implements IComponent<JPanel> {
         popupMenu.add(leaveRoomItem);
         renameRoomItem = new JMenuItem("Rename");
         popupMenu.add(renameRoomItem);
+
         changePasswordRoomItem = new JMenuItem("Change password");
         popupMenu.add(changePasswordRoomItem);
+
+        removePasswordRoomItem = new JMenuItem("Remove password");
+        popupMenu.add(removePasswordRoomItem);
+
+        setPasswordRoomItem = new JMenuItem("Set password");
+        popupMenu.add(setPasswordRoomItem);
+
         deleteRoomItem = new JMenuItem("Delete");
         popupMenu.add(deleteRoomItem);
 
@@ -71,7 +82,17 @@ public class RoomList implements IComponent<JPanel> {
                 RoomStatus selectedRoom = roomJList.getSelectedValue();
                 boolean isOwner = selectedRoom.getUserInfo(currentUser).getRank() == UserInfo.Rank.OWNER;
                 renameRoomItem.setVisible(isOwner);
-                changePasswordRoomItem.setVisible(isOwner);
+                if(isOwner){
+                    changePasswordRoomItem.setVisible(selectedRoom.getRoomInfo().hasPassword());
+                    removePasswordRoomItem.setVisible(selectedRoom.getRoomInfo().hasPassword());
+
+                    setPasswordRoomItem.setVisible(!selectedRoom.getRoomInfo().hasPassword());
+                }else{
+                    changePasswordRoomItem.setVisible(false);
+                    removePasswordRoomItem.setVisible(false);
+                    setPasswordRoomItem.setVisible(false);
+                }
+
                 deleteRoomItem.setVisible(isOwner);
 
                 popupMenu.show(roomJList, e.getX(), e.getY()); //and show the menu
@@ -163,6 +184,18 @@ public class RoomList implements IComponent<JPanel> {
 
     public void addChangePasswordActionListener(Lambdas.Function1<RoomStatus> listener) {
         changePasswordRoomItem.addActionListener(e -> {
+            listener.apply(getSelected());
+        });
+    }
+
+    public void addRemovePasswordActionListener(Lambdas.Function1<RoomStatus> listener) {
+        removePasswordRoomItem.addActionListener(e -> {
+            listener.apply(getSelected());
+        });
+    }
+
+    public void addSetPasswordActionListener(Lambdas.Function1<RoomStatus> listener) {
+        setPasswordRoomItem.addActionListener(e -> {
             listener.apply(getSelected());
         });
     }

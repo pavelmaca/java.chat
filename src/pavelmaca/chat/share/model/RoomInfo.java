@@ -51,4 +51,12 @@ public class RoomInfo implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
+
+    public void removePassword() {
+        this.hasPassword = false;
+    }
+
+    public void setPassword() {
+        this.hasPassword = true;
+    }
 }

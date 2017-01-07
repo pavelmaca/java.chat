@@ -63,6 +63,8 @@ public class Session implements Runnable {
         requestHandlers.put(Request.Types.LOGOUT, this::handleLogout);
         requestHandlers.put(Request.Types.USER_CHANGE_PASSWORD, this::handleChangeUserPassword);
         requestHandlers.put(Request.Types.ROOM_CHANHE_NAME, this::handleChangeRoomName);
+        requestHandlers.put(Request.Types.ROOM_CHANGE_PASSWORD, this::handleChangeRoomPassword);
+        requestHandlers.put(Request.Types.ROOM_REMOVE_PASSWORD, this::handleRemoveRoomPassword);
     }
 
     @Override
@@ -319,6 +321,41 @@ public class Session implements Runnable {
                 return;
             }
         }
+        sendResponse(new ErrorResponse("Can't change password, try again later."));
+    }
+
+    private void handleChangeRoomPassword(Request request) {
+        String newPassword = request.getParam("password");
+        int roomId = request.getParam("roomId");
+        RoomThread roomThread = roomManager.getThread(roomId);
+        Room room = roomThread.getRoom();
+        if (newPassword.length() > 0 && room.getOwner().getId() == currentUser.getId()) {
+            boolean status = roomRepository.changePassword(room, newPassword);
+            if (status) {
+                room.setPassword(newPassword);
+                sendResponse(new Response(Response.Codes.OK));
+                return;
+            }
+        }
+        sendResponse(new ErrorResponse("Cant change password, try again later."));
+    }
+
+    private void handleRemoveRoomPassword(Request request) {
+        int roomId = request.getParam("roomId");
+        RoomThread roomThread = roomManager.getThread(roomId);
+        Room room = roomThread.getRoom();
+        if (room.getOwner().getId() == currentUser.getId()) {
+            boolean status = roomRepository.removePassword(room);
+            if (status) {
+                room.setPassword(null);
+                sendResponse(new Response(Response.Codes.OK));
+                return;
+            }
+        }else{
+            sendResponse(new ErrorResponse("Not allowed"));
+            return;
+        }
+
         sendResponse(new ErrorResponse("Cant change password, try again later."));
     }
 
@@ -383,6 +420,8 @@ public class Session implements Runnable {
                 Request.Types.USER_CHANGE_PASSWORD,
                 Request.Types.USER_STATUS,
                 Request.Types.ROOM_CHANHE_NAME,
+                Request.Types.ROOM_CHANGE_PASSWORD,
+                Request.Types.ROOM_REMOVE_PASSWORD,
         });
 
         protected Request.Types[] allowedCommands;

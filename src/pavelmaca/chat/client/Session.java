@@ -148,7 +148,7 @@ public class Session implements Runnable {
         Response response = sendRequest(request);
         if (response.getCode() == Response.Codes.OK) {
             return response.getBody();
-        }else{
+        } else {
             throw new ResponseException(response);
         }
     }
@@ -234,5 +234,24 @@ public class Session implements Runnable {
             return true;
         }
         return false;
+    }
+
+    public void roomChangePassword(int roomId, String newPassword) throws ResponseException {
+        Request request = new Request(Request.Types.ROOM_CHANGE_PASSWORD);
+        request.addParameter("password", newPassword);
+        request.addParameter("roomId", roomId);
+        Response response = sendRequest(request);
+        if (response.getCode() != Response.Codes.OK) {
+            throw new ResponseException(response);
+        }
+    }
+
+    public void roomRemovePassword(int roomId) throws ResponseException {
+        Request request = new Request(Request.Types.ROOM_REMOVE_PASSWORD);
+        request.addParameter("roomId", roomId);
+        Response response = sendRequest(request);
+        if (response.getCode() != Response.Codes.OK) {
+            throw new ResponseException(response);
+        }
     }
 }

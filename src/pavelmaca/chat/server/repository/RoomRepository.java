@@ -187,4 +187,33 @@ public class RoomRepository extends Repository {
         return false;
     }
 
+    public boolean changePassword(Room room, String newPassword) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("UPDATE room SET password = ? WHERE id = ? ");
+            statement.setString(1, newPassword);
+            statement.setInt(2, room.getId());
+
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean removePassword(Room room) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("UPDATE room SET password = ? WHERE id = ? ");
+            statement.setNull(1, Types.VARCHAR);
+            statement.setInt(2, room.getId());
+
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

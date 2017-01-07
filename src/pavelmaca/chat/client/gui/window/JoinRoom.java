@@ -51,6 +51,9 @@ public class JoinRoom extends Window {
                 roomPasswordLabel.setVisible(false);
                 roomPassword.setVisible(false);
             }
+
+            errorLabel.setVisible(false);
+
             frame.pack();
         });
     }

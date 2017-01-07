@@ -1,10 +1,7 @@
 package pavelmaca.chat.client.gui.window;
 
 import pavelmaca.chat.client.Session;
-import pavelmaca.chat.client.gui.components.ChatList;
-import pavelmaca.chat.client.gui.components.HeaderMenu;
-import pavelmaca.chat.client.gui.components.RoomList;
-import pavelmaca.chat.client.gui.components.UserList;
+import pavelmaca.chat.client.gui.components.*;
 import pavelmaca.chat.share.Lambdas;
 import pavelmaca.chat.share.ResponseException;
 import pavelmaca.chat.share.model.MessageInfo;
@@ -132,6 +129,45 @@ public class Main extends Window {
             }
         });
 
+        roomList.addChangePasswordActionListener(roomStatus -> {
+            SimpleInputDialog dialog = new SimpleInputDialog(frame.getContentPane(), "Change password", "New room password");
+            dialog.setValidator(s -> !s.isEmpty(), "Password is required");
+            dialog.onSuccess(newPassword -> {
+                try {
+                    session.roomChangePassword(roomStatus.getRoomInfo().getId(), newPassword);
+                } catch (ResponseException e) {
+                    dialog.setErrorMessage(e.getMessage());
+                    dialog.open();
+                }
+            });
+            dialog.open();
+        });
+
+        roomList.addRemovePasswordActionListener(roomStatus -> {
+            try {
+                session.roomRemovePassword(roomStatus.getRoomInfo().getId());
+                roomStatus.getRoomInfo().removePassword();
+            } catch (ResponseException e) {
+                showError(e.getMessage());
+            }
+
+        });
+
+        roomList.addSetPasswordActionListener(roomStatus -> {
+            SimpleInputDialog dialog = new SimpleInputDialog(frame.getContentPane(), "Set password", "Room password");
+            dialog.setValidator(s -> !s.isEmpty(), "Password is required");
+            dialog.onSuccess(newPassword -> {
+                try {
+                    session.roomChangePassword(roomStatus.getRoomInfo().getId(), newPassword);
+                    roomStatus.getRoomInfo().setPassword();
+                } catch (ResponseException e) {
+                    dialog.setErrorMessage(e.getMessage());
+                    dialog.open();
+                }
+            });
+            dialog.open();
+        });
+
         headerMenu.addChangePasswordActionListener(e -> {
             ChangePassword changePassword = new ChangePassword();
             changePassword.onCancel(changePassword::close);
@@ -155,6 +191,10 @@ public class Main extends Window {
                 roomList.getComponent(), chatSplitPane);
         contentPane.add(roomSplitPane, BorderLayout.CENTER);
 
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(frame.getContentPane(), message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void openJoinRoomWindow() {
