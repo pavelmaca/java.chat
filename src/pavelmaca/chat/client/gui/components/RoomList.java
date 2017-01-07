@@ -45,8 +45,8 @@ public class RoomList implements Factory<JPanel> {
         roomJList.setCellRenderer(new RoomListRenderer());
 
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem disconnectRoomItem = new JMenuItem("Disconnect");
-        popupMenu.add(disconnectRoomItem);
+        JMenuItem leaveRoomItem = new JMenuItem("Leave");
+        popupMenu.add(leaveRoomItem);
         renameRoomItem = new JMenuItem("Rename");
         popupMenu.add(renameRoomItem);
         changePasswordRoomItem = new JMenuItem("Change password");
