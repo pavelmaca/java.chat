@@ -4,6 +4,7 @@ import pavelmaca.chat.share.comunication.Request;
 import pavelmaca.chat.server.entity.Message;
 import pavelmaca.chat.server.entity.Room;
 import pavelmaca.chat.server.entity.User;
+import pavelmaca.chat.share.model.UserInfo;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -55,7 +56,9 @@ public class RoomThread implements Runnable {
             System.out.println("user " + user.getName() + " connected to room " + room.getId());
             Request request = new Request(Request.Types.ROOM_USER_CONNECTED);
             request.addParameter("roomId", room.getId());
-            request.addParameter("user", user.getInfoModel());
+            UserInfo userInfo = user.getInfoModel();
+            userInfo.setRank(room.getOwner().getId() == user.getId() ? UserInfo.Rank.OWNER : UserInfo.Rank.MEMEBER);
+            request.addParameter("user", userInfo);
             request.addParameter("authorId", user.getId());
             try {
                 requestQueue.putLast(request);
@@ -91,6 +94,27 @@ public class RoomThread implements Runnable {
             }
         }
     }
+
+    public void leave(User user) {
+        synchronized (activeUsers) {
+            System.out.println("user " + user.getName() + " leave from room " + room.getId());
+            Request request = new Request(Request.Types.ROOM_USER_LEAVE);
+            request.addParameter("roomId", room.getId());
+            request.addParameter("userId", user.getId());
+            request.addParameter("authorId", user.getId());
+            try {
+                requestQueue.putLast(request);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            activeUsers.remove(user);
+            if (activeUsers.isEmpty()) {
+                stopThread();
+            }
+        }
+    }
+
 
     public boolean isRunning() {
         return running;

@@ -16,7 +16,7 @@ import java.util.TreeSet;
 /**
  * Created by Assassik on 05.01.2017.
  */
-public class UserList implements Factory<JPanel> {
+public class UserList implements IComponent<JPanel> {
     private JList<UserInfo> userJList;
     JPopupMenu popupMenu;
     JMenuItem banPopupItem;
@@ -24,8 +24,10 @@ public class UserList implements Factory<JPanel> {
 
     private UserInfo currentUserInRoom;
 
-    public JPanel create() {
-        JPanel panel = new JPanel();
+    JPanel panel;
+
+    public UserList() {
+        panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 10));
 
@@ -84,11 +86,14 @@ public class UserList implements Factory<JPanel> {
                 event.apply(e);
             }
         });
+    }
 
+    @Override
+    public JPanel getComponent() {
         return panel;
     }
 
-   /* public void update(DefaultListModel<UserInfo> userModel){
+    /* public void update(DefaultListModel<UserInfo> userModel){
         userJList.setModel(userModel);
     }*/
 

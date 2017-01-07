@@ -58,7 +58,7 @@ public class RoomStatus implements Serializable {
     }
 
     public void userJoined(UserInfo userInfo) {
-        //  userInfo.setStatus(UserInfo.Status.ONLINE);
+        userInfo.setStatus(UserInfo.Status.ONLINE);
         userList.add(userInfo);
     }
 
@@ -71,9 +71,7 @@ public class RoomStatus implements Serializable {
         }
 
         // new user
-        userInfo.setStatus(UserInfo.Status.ONLINE);
-        userList.add(userInfo);
-
+        userJoined(userInfo);
     }
 
     public void userDisconnected(int userId) {

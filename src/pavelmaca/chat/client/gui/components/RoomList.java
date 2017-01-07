@@ -16,21 +16,23 @@ import java.awt.event.MouseEvent;
 /**
  * Created by Assassik on 05.01.2017.
  */
-public class RoomList implements Factory<JPanel> {
+public class RoomList implements IComponent<JPanel> {
 
     final private DefaultListModel<RoomStatus> roomListModel = new DefaultListModel<>();
     private JList<RoomStatus> roomJList = new JList<>();
     private JButton joinRoomBtn = new JButton("Join room");
 
+    JMenuItem leaveRoomItem;
     JMenuItem renameRoomItem;
     JMenuItem changePasswordRoomItem;
     JMenuItem deleteRoomItem;
 
+    JPanel panel;
+
     private UserInfo currentUser = null;
 
-    @Override
-    public JPanel create() {
-        JPanel panel = new JPanel();
+    public RoomList() {
+        panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
 
@@ -45,7 +47,7 @@ public class RoomList implements Factory<JPanel> {
         roomJList.setCellRenderer(new RoomListRenderer());
 
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem leaveRoomItem = new JMenuItem("Leave");
+        leaveRoomItem = new JMenuItem("Leave");
         popupMenu.add(leaveRoomItem);
         renameRoomItem = new JMenuItem("Rename");
         popupMenu.add(renameRoomItem);
@@ -89,11 +91,6 @@ public class RoomList implements Factory<JPanel> {
             }
         });
 
-     /*   roomJList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                onRoomSelected();
-            }
-        });*/
 
         panel.add(joinRoomBtn, BorderLayout.PAGE_END);
 
@@ -103,7 +100,9 @@ public class RoomList implements Factory<JPanel> {
         Dimension minimumSize = new Dimension(150, 25);
         roomJList.setMinimumSize(minimumSize);
         panel.setMinimumSize(minimumSize);
+    }
 
+    public JPanel getComponent() {
         return panel;
     }
 
@@ -123,6 +122,21 @@ public class RoomList implements Factory<JPanel> {
         roomListModel.addElement(room);
     }
 
+    public void removeRoom(RoomStatus room) {
+        roomListModel.removeElement(room);
+    }
+
+    public void refresh() {
+        roomJList.repaint();
+    }
+
+
+    public void setCurrentUser(UserInfo currentUser) {
+        this.currentUser = currentUser;
+    }
+
+    // ------ Listeners
+
     public void addJoinActionListener(ActionListener listener) {
         joinRoomBtn.addActionListener(listener);
     }
@@ -135,12 +149,28 @@ public class RoomList implements Factory<JPanel> {
         });
     }
 
-    public void refresh() {
-        roomJList.repaint();
+    public void addLeaveActionListener(Lambdas.Function1<RoomStatus> listener) {
+        leaveRoomItem.addActionListener(e -> {
+            listener.apply(getSelected());
+        });
     }
 
-
-    public void setCurrentUser(UserInfo currentUser) {
-        this.currentUser = currentUser;
+    public void addRenameActionListener(Lambdas.Function1<RoomStatus> listener) {
+        renameRoomItem.addActionListener(e -> {
+            listener.apply(getSelected());
+        });
     }
+
+    public void addChangePasswordActionListener(Lambdas.Function1<RoomStatus> listener) {
+        changePasswordRoomItem.addActionListener(e -> {
+            listener.apply(getSelected());
+        });
+    }
+
+    public void addDeleteActionListener(Lambdas.Function1<RoomStatus> listener) {
+        deleteRoomItem.addActionListener(e -> {
+            listener.apply(getSelected());
+        });
+    }
+
 }

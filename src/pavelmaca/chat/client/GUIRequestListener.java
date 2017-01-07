@@ -26,7 +26,7 @@ public class GUIRequestListener implements Runnable {
         while (running) {
             try {
                 Request request = session.getUpdateQueue().takeFirst();
-                if(request.type == Request.Types.DUMMY){
+                if (request.type == Request.Types.DUMMY) {
                     running = false;
                     break;
                 }
@@ -44,6 +44,7 @@ public class GUIRequestListener implements Runnable {
 
             switch (request.getType()) {
                 case ROOM_USER_CONNECTED:
+                    //TODO when adin re-join room, no icon is displayed
                     mainWindow.userConnected(
                             request.getParam("roomId"),
                             request.getParam("user")
@@ -51,6 +52,13 @@ public class GUIRequestListener implements Runnable {
                     break;
                 case ROOM_USER_DISCONNECTED:
                     mainWindow.userDisconnected(
+                            request.getParam("roomId"),
+                            request.getParam("userId")
+                    );
+                    break;
+
+                case ROOM_USER_LEAVE:
+                    mainWindow.userLeft(
                             request.getParam("roomId"),
                             request.getParam("userId")
                     );

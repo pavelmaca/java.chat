@@ -45,10 +45,7 @@ public class Main extends Window {
 
         roomStatuses = roomStatus;
         roomStatuses.forEach((integer, statusUpdate) -> roomList.addRoom(statusUpdate));
-        if (!roomStatuses.isEmpty()) {
-            RoomStatus firstRoom = roomStatus.entrySet().iterator().next().getValue();
-            roomList.setSelected(firstRoom);
-        }
+        selectFirstRoom();
 
         chatList.setCurrentUser(identity);
         chatList.addMessageSubmitListener((text) -> {
@@ -90,7 +87,7 @@ public class Main extends Window {
         roomList.addJoinActionListener(e -> openJoinRoomWindow());
 
         headerMenu = new HeaderMenu();
-        frame.setJMenuBar(headerMenu.create());
+        frame.setJMenuBar(headerMenu.getComponent());
 
         chatList = new ChatList();
 
@@ -98,11 +95,19 @@ public class Main extends Window {
         userList = new UserList();
 
         roomList.addRoomSelectedListener(room -> {
+            if (room == null) return;
+
             //change window title to room name
             frame.setTitle(room.getRoomInfo().getName());
+
             System.out.println("selected room " + room.getRoomInfo().getId());
             userList.show(room.getUserList(), room.getUserInfo(identity));
             chatList.show(room.getMessages());
+        });
+
+        roomList.addLeaveActionListener(roomStatus -> {
+            session.leaveRoom(roomStatus.getRoomInfo().getId());
+            removeRoom(roomStatus);
         });
 
         headerMenu.addChangePasswordActionListener(e -> {
@@ -120,12 +125,12 @@ public class Main extends Window {
         Container contentPane = frame.getContentPane();
 
         JSplitPane chatSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        chatSplitPane.setLeftComponent(chatList.create());
-        chatSplitPane.setRightComponent(userList.create());
+        chatSplitPane.setLeftComponent(chatList.getComponent());
+        chatSplitPane.setRightComponent(userList.getComponent());
         chatSplitPane.setResizeWeight(1);
 
         JSplitPane roomSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                roomList.create(), chatSplitPane);
+                roomList.getComponent(), chatSplitPane);
         contentPane.add(roomSplitPane, BorderLayout.CENTER);
 
     }
@@ -160,6 +165,22 @@ public class Main extends Window {
             roomList.setSelected(room);
         }
 
+    }
+
+    private void removeRoom(RoomStatus room) {
+        roomStatuses.remove(room);
+        roomList.removeRoom(room);
+        if (roomList.getSelected() == null || roomList.getSelected().equals(room)) {
+            selectFirstRoom();
+        }
+
+    }
+
+    private void selectFirstRoom() {
+        if (!roomStatuses.isEmpty()) {
+            RoomStatus firstRoom = roomStatuses.entrySet().iterator().next().getValue();
+            roomList.setSelected(firstRoom);
+        }
     }
 
     /// ----- Listeners
@@ -203,5 +224,12 @@ public class Main extends Window {
         }
     }
 
-
+    public void userLeft(int roomId, int userId) {
+        RoomStatus roomStatus = roomStatuses.get(roomId);
+        roomStatus.userLeave(userId);
+        if (roomList.getSelected().equals(roomStatus)) {
+            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));
+        }
+        roomList.refresh();
+    }
 }

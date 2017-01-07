@@ -79,6 +79,17 @@ public class RoomRepository extends Repository {
         return null;
     }
 
+    public void leaveRoom(int roomId, User user) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("DELETE FROM room_user WHERE room_id = ? AND user_id = ?");
+            statement.setInt(1, roomId);
+            statement.setInt(2, user.getId());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public ArrayList<RoomInfo> getAllAvailable(User user) {
         try {
             PreparedStatement statement = connection.prepareStatement("" +
@@ -128,24 +139,6 @@ public class RoomRepository extends Repository {
             e.printStackTrace();
         }
         return rooms;
-    }
-
-    public int countUsers(Room room) {
-        int count = 0;
-        try {
-            PreparedStatement statement = connection.prepareStatement("" +
-                    "SELECT COUNT(ru.user_id) AS total FROM room_user ru " +
-                    "WHERE ru.room_id = ? ");
-            statement.setInt(1, room.getId());
-
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getInt("total");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return count;
     }
 
     public ArrayList<User> getConnectedUsers(Room room) {

@@ -18,16 +18,17 @@ import java.util.*;
 /**
  * Created by Assassik on 06.01.2017.
  */
-public class ChatList implements Factory<JPanel> {
+public class ChatList implements IComponent<JPanel> {
     private JList<MessageInfo> chatJList;
     private JTextField message = new JTextField();
     private JButton sendBtn = new JButton("Send");
 
     private UserInfo currentUser;
 
-    @Override
-    public JPanel create() {
-        JPanel panel = new JPanel();
+    JPanel panel;
+
+    public ChatList() {
+        panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
         panel.setPreferredSize(new Dimension(400, 300));
@@ -66,7 +67,10 @@ public class ChatList implements Factory<JPanel> {
 
         panel.add(new JScrollPane(chatJList), BorderLayout.CENTER);
         panel.add(buttonPane, BorderLayout.PAGE_END);
+    }
 
+    @Override
+    public JPanel getComponent() {
         return panel;
     }
 

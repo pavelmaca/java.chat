@@ -58,7 +58,8 @@ public class Session implements Runnable {
         requestHandlers.put(Request.Types.ROOM_GET_AVAILABLE_LIST, this::handleRetrieveAvailableRoomList);
         requestHandlers.put(Request.Types.ROOM_CREATE, this::handleCreateRoom);
         requestHandlers.put(Request.Types.MESSAGE_NEW, this::handleMessageReceiver);
-        requestHandlers.put(Request.Types.USER_ROOM_JOIN, this::handleJoinRoom);
+        requestHandlers.put(Request.Types.ROOM_USER_JOIN, this::handleJoinRoom);
+        requestHandlers.put(Request.Types.ROOM_USER_LEAVE, this::handleLeaveRoom);
         requestHandlers.put(Request.Types.LOGOUT, this::handleLogout);
         requestHandlers.put(Request.Types.USER_CHANGE_PASSWORD, this::handleChangeUserPassword);
     }
@@ -254,6 +255,19 @@ public class Session implements Runnable {
         sendResponse(response);
     }
 
+    private void handleLeaveRoom(Request request) {
+        System.out.println("leave room request recieved");
+
+        int roomId = request.getParam("roomId");
+
+        roomRepository.leaveRoom(roomId, currentUser);
+
+        RoomThread roomThread = roomManager.getThread(roomId);
+        roomThread.leave(currentUser);
+        roomManager.purgeRoomThread(roomThread.getRoom());
+    }
+
+
     private void handleLogout(Request request) {
         state = States.GUEST;
         roomManager.getAllConnectedThreads(currentUser).parallelStream().forEach(roomThread -> {
@@ -331,7 +345,8 @@ public class Session implements Runnable {
         AUTHENTICATED(new Request.Types[]{
                 Request.Types.ROOM_CREATE,
                 Request.Types.ROOM_GET_AVAILABLE_LIST,
-                Request.Types.USER_ROOM_JOIN,
+                Request.Types.ROOM_USER_JOIN,
+                Request.Types.ROOM_USER_LEAVE,
                 Request.Types.MESSAGE_NEW,
                 Request.Types.CLOSE,
                 Request.Types.LOGOUT,

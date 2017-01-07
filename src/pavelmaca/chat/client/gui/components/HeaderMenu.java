@@ -8,15 +8,16 @@ import java.awt.event.ActionListener;
 /**
  * Created by Assassik on 05.01.2017.
  */
-public class HeaderMenu implements Factory<JMenuBar> {
+public class HeaderMenu implements IComponent<JMenuBar> {
 
     JMenuItem disconnectItem = new JMenuItem("Disconnect");
     JMenuItem logoutItem = new JMenuItem("Logout");
     JMenuItem changePasswordItem = new JMenuItem("Change password");
 
-    @Override
-    public JMenuBar create() {
-        JMenuBar menuBar = new JMenuBar();
+    JMenuBar menuBar;
+
+    public HeaderMenu() {
+        menuBar = new JMenuBar();
 
         JMenu server = new JMenu("Server");
         server.add(disconnectItem);
@@ -26,7 +27,10 @@ public class HeaderMenu implements Factory<JMenuBar> {
         user.add(changePasswordItem);
         user.add(logoutItem);
         menuBar.add(user);
+    }
 
+    @Override
+    public JMenuBar getComponent() {
         return menuBar;
     }
 

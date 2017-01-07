@@ -140,13 +140,19 @@ public class Session implements Runnable {
     }
 
     public RoomStatus joinRoom(int roomId) {
-        Request request = new Request(Request.Types.USER_ROOM_JOIN);
+        Request request = new Request(Request.Types.ROOM_USER_JOIN);
         request.addParameter("roomId", roomId);
         Response response = sendRequest(request);
         if (response.getCode() == Response.Codes.OK) {
             return response.getBody();
         }
         return null;
+    }
+
+    public void leaveRoom(int roomId) {
+        Request request = new Request(Request.Types.ROOM_USER_LEAVE);
+        request.addParameter("roomId", roomId);
+        sendRequestWithoutResponse(request);
     }
 
     private Response sendRequest(Request request) {
