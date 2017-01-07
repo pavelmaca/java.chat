@@ -16,14 +16,14 @@ import java.util.Properties;
  */
 public class ClientApp implements Runnable {
 
-    Session session;
-    Properties properties;
+    private Session session;
+    private Properties properties;
 
     public static void main(String[] args) {
         try {
-            // WebLookAndFeel.install ();
+            // Setup custom Swing look and feel
             UIManager.setLookAndFeel(new WebLookAndFeel());
-            //  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
             SwingUtilities.invokeLater(new ClientApp());
         } catch (Throwable e) {
             e.printStackTrace();
@@ -42,6 +42,9 @@ public class ClientApp implements Runnable {
         }
     }
 
+    /**
+     * Open connection setting window
+     */
     private void openConnectionWindow() {
         Connect connectWindow = new Connect();
         connectWindow.setDefaults(
@@ -71,6 +74,9 @@ public class ClientApp implements Runnable {
         });
     }
 
+    /**
+     * Open authorization window
+     */
     private void openAuthenticationWindow() {
         Login loginWindow = new Login();
         loginWindow.onSubmit((username, password) -> {
@@ -96,6 +102,12 @@ public class ClientApp implements Runnable {
 
     }
 
+    /**
+     * Open main ap window
+     *
+     * @param roomStatusInfo history for all connected rooms
+     * @param identity       Current user info
+     */
     private void openMainWindow(HashMap<Integer, RoomStatus> roomStatusInfo, UserInfo identity) {
         if (identity == null) {
             openAuthenticationWindow();
@@ -113,13 +125,7 @@ public class ClientApp implements Runnable {
             openAuthenticationWindow();
         });
 
-        //  System.out.println("event thread: " + SwingUtilities.isEventDispatchThread());
-
         // request listener
         new Thread(new GUIRequestListener(mainWindow, session)).start();
-
-        //mainWindow.onJoinRoomClicked((e) -> openJoinRoomWindow(mainWindow));
     }
-
-
 }

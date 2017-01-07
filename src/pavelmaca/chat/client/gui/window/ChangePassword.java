@@ -6,6 +6,8 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
+ * Change password window
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class ChangePassword extends Window {
@@ -15,7 +17,7 @@ public class ChangePassword extends Window {
     private JButton saveBtn;
     private JButton cancelBtn;
 
-    JLabel errorLabel;
+    private JLabel errorLabel;
 
     public ChangePassword() {
         super("Change password");
@@ -23,6 +25,7 @@ public class ChangePassword extends Window {
 
     @Override
     protected void setupComponents() {
+        //Setup GUI
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
@@ -59,22 +62,31 @@ public class ChangePassword extends Window {
         frame.getContentPane().add(buttonPane, BorderLayout.PAGE_END);
     }
 
+    /**
+     * @param callback Called after valid new password is submitted
+     */
     public void onSubmit(Lambdas.Function1<String> callback) {
         saveBtn.addActionListener(e -> {
             if (!newPassword.getText().isEmpty()) {
                 callback.apply(newPassword.getText());
-            }else {
+            } else {
                 showError("password can't be empty.");
             }
         });
     }
 
+    /**
+     * @param callback Called after cancel button clicked
+     */
     public void onCancel(Lambdas.Function0 callback) {
         cancelBtn.addActionListener(e -> {
             callback.apply();
         });
     }
 
+    /**
+     * @param text Error message
+     */
     public void showError(String text) {
         errorLabel.setText(text);
         errorLabel.setVisible(true);

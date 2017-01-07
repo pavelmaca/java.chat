@@ -3,6 +3,8 @@ package pavelmaca.chat.server.entity;
 import pavelmaca.chat.share.model.RoomInfo;
 
 /**
+ * Represent table row for room
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class Room {

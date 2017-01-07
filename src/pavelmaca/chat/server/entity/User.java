@@ -3,6 +3,8 @@ package pavelmaca.chat.server.entity;
 import pavelmaca.chat.share.model.UserInfo;
 
 /**
+ * Represent table row for user
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class User {
@@ -36,7 +38,7 @@ public class User {
         return id;
     }
 
-    public UserInfo getInfoModel(){
+    public UserInfo getInfoModel() {
         return new UserInfo(id, name);
     }
 

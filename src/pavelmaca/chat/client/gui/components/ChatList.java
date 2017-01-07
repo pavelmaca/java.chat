@@ -16,18 +16,22 @@ import java.awt.event.ComponentEvent;
 import java.util.*;
 
 /**
- * Created by Assassik on 06.01.2017.
+ * Chat list component
+ *
+ * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class ChatList implements IComponent<JPanel> {
     private JList<MessageInfo> chatJList;
+
     private JTextField message = new JTextField();
     private JButton sendBtn = new JButton("Send");
+    private JPanel panel;
 
     private UserInfo currentUser;
 
-    JPanel panel;
 
     public ChatList() {
+        //setup GUI
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
@@ -74,6 +78,9 @@ public class ChatList implements IComponent<JPanel> {
         return panel;
     }
 
+    /**
+     * @param handler Action performed after valid message is submitted
+     */
     public void addMessageSubmitListener(Lambdas.Function1<String> handler) {
         Action action = new AbstractAction() {
             @Override
@@ -90,6 +97,9 @@ public class ChatList implements IComponent<JPanel> {
         sendBtn.addActionListener(action);
     }
 
+    /**
+     * @param messages List of messages to show in GUI
+     */
     public void show(java.util.List<MessageInfo> messages) {
         DefaultListModel<MessageInfo> chatListModel = new DefaultListModel<>();
         messages.forEach(chatListModel::addElement);
@@ -97,6 +107,9 @@ public class ChatList implements IComponent<JPanel> {
         chatJList.ensureIndexIsVisible(chatListModel.size() - 1);
     }
 
+    /**
+     * @param currentUser Set current user for the message formatting
+     */
     public void setCurrentUser(UserInfo currentUser) {
         this.currentUser = currentUser;
     }

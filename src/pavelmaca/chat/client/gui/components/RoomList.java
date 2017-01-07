@@ -14,7 +14,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 /**
- * Created by Assassik on 05.01.2017.
+ * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class RoomList implements IComponent<JPanel> {
 
@@ -45,7 +45,6 @@ public class RoomList implements IComponent<JPanel> {
         roomJList.setModel(roomListModel);
         panel.add(new JScrollPane(roomJList), BorderLayout.CENTER);
 
-        //roomJList.setFixedCellHeight(25);
         roomJList.setFixedCellWidth(100);
         roomJList.setCellRenderer(new RoomListRenderer());
 
@@ -67,7 +66,8 @@ public class RoomList implements IComponent<JPanel> {
         deleteRoomItem = new JMenuItem("Delete");
         popupMenu.add(deleteRoomItem);
 
-        //   roomJList.setComponentPopupMenu(popupMenu);
+
+        // Right click event
         Lambdas.Function1<MouseEvent> event = (e) -> {
             if (e.isPopupTrigger()) { //if the event shows the menu
                 int index = roomJList.locationToIndex(e.getPoint());
@@ -82,12 +82,12 @@ public class RoomList implements IComponent<JPanel> {
                 RoomStatus selectedRoom = roomJList.getSelectedValue();
                 boolean isOwner = selectedRoom.getUserInfo(currentUser).getRank() == UserInfo.Rank.OWNER;
                 renameRoomItem.setVisible(isOwner);
-                if(isOwner){
+                if (isOwner) {
                     changePasswordRoomItem.setVisible(selectedRoom.getRoomInfo().hasPassword());
                     removePasswordRoomItem.setVisible(selectedRoom.getRoomInfo().hasPassword());
 
                     setPasswordRoomItem.setVisible(!selectedRoom.getRoomInfo().hasPassword());
-                }else{
+                } else {
                     changePasswordRoomItem.setVisible(false);
                     removePasswordRoomItem.setVisible(false);
                     setPasswordRoomItem.setVisible(false);
@@ -95,7 +95,7 @@ public class RoomList implements IComponent<JPanel> {
 
                 deleteRoomItem.setVisible(isOwner);
 
-                popupMenu.show(roomJList, e.getX(), e.getY()); //and show the menu
+                popupMenu.show(roomJList, e.getX(), e.getY()); //show the menu
             }
         };
         roomJList.addMouseListener(new MouseAdapter() {
@@ -127,6 +127,9 @@ public class RoomList implements IComponent<JPanel> {
         return panel;
     }
 
+    /**
+     * @return Selected room
+     */
     public RoomStatus getSelected() {
         return roomJList.getSelectedValue();
     }
@@ -135,34 +138,54 @@ public class RoomList implements IComponent<JPanel> {
         return !roomJList.isSelectionEmpty();
     }
 
+    /**
+     * @param roomStatus Select this room
+     */
     public void setSelected(RoomStatus roomStatus) {
         roomJList.setSelectedValue(roomStatus, true);
     }
 
+    /**
+     * @param room Add room to the list
+     */
     public void addRoom(RoomStatus room) {
         roomListModel.addElement(room);
     }
 
+    /**
+     * @param room Remove room from the list
+     */
     public void removeRoom(RoomStatus room) {
         roomListModel.removeElement(room);
     }
 
+    /**
+     * Refresh component to update online status counter
+     */
     public void refresh() {
         roomJList.repaint();
-        roomJList.updateUI();
     }
 
 
+    /**
+     * @param currentUser Current logged user
+     */
     public void setCurrentUser(UserInfo currentUser) {
         this.currentUser = currentUser;
     }
 
     // ------ Listeners
 
+    /**
+     * @param listener Join room button clicked
+     */
     public void addJoinActionListener(ActionListener listener) {
         joinRoomBtn.addActionListener(listener);
     }
 
+    /**
+     * @param listener Room selected
+     */
     public void addRoomSelectedListener(Lambdas.Function1<RoomStatus> listener) {
         roomJList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -171,36 +194,54 @@ public class RoomList implements IComponent<JPanel> {
         });
     }
 
+    /**
+     * @param listener Leave button clicked
+     */
     public void addLeaveActionListener(Lambdas.Function1<RoomStatus> listener) {
         leaveRoomItem.addActionListener(e -> {
             listener.apply(getSelected());
         });
     }
 
+    /**
+     * @param listener Rename button clicked
+     */
     public void addRenameActionListener(Lambdas.Function1<RoomStatus> listener) {
         renameRoomItem.addActionListener(e -> {
             listener.apply(getSelected());
         });
     }
 
+    /**
+     * @param listener Change  password button clicked
+     */
     public void addChangePasswordActionListener(Lambdas.Function1<RoomStatus> listener) {
         changePasswordRoomItem.addActionListener(e -> {
             listener.apply(getSelected());
         });
     }
 
+    /**
+     * @param listener Remove password button clicked
+     */
     public void addRemovePasswordActionListener(Lambdas.Function1<RoomStatus> listener) {
         removePasswordRoomItem.addActionListener(e -> {
             listener.apply(getSelected());
         });
     }
 
+    /**
+     * @param listener Set password button clicked
+     */
     public void addSetPasswordActionListener(Lambdas.Function1<RoomStatus> listener) {
         setPasswordRoomItem.addActionListener(e -> {
             listener.apply(getSelected());
         });
     }
 
+    /**
+     * @param listener Delete room button clicked
+     */
     public void addDeleteActionListener(Lambdas.Function1<RoomStatus> listener) {
         deleteRoomItem.addActionListener(e -> {
             listener.apply(getSelected());

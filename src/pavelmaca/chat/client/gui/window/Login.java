@@ -16,7 +16,7 @@ public class Login extends Window {
     private JButton connectBtn;
     private JButton cancelBtn;
 
-    JLabel errorLabel;
+    private JLabel errorLabel;
 
     public Login() {
         super("Login");
@@ -64,23 +64,32 @@ public class Login extends Window {
         frame.getContentPane().add(buttonPane, BorderLayout.PAGE_END);
     }
 
+    /**
+     * @param callback Called after valid user information are filled
+     */
     public void onSubmit(Lambdas.Function2<String, String> callback) {
         connectBtn.addActionListener(e -> {
             String userNameText = userName.getText();
             if (!userNameText.isEmpty() && !password.getText().isEmpty()) {
                 callback.apply(userName.getText(), password.getText());
-            }else {
+            } else {
                 showError("Fill username and password.");
             }
         });
     }
 
+    /**
+     * @param callback Called after close button clicked
+     */
     public void onCancel(Lambdas.Function0 callback) {
         cancelBtn.addActionListener(e -> {
             callback.apply();
         });
     }
 
+    /**
+     * @param text Error message
+     */
     public void showError(String text) {
         errorLabel.setText(text);
         errorLabel.setVisible(true);

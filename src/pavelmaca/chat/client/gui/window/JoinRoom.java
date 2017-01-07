@@ -33,6 +33,7 @@ public class JoinRoom extends Window {
 
         roomList.forEach(r -> roomSelectBox.addItem(r));
 
+        // show password field and new room name by selected item
         roomSelectBox.addActionListener(e -> {
             RoomInfo selectedRoom = (RoomInfo) roomSelectBox.getSelectedItem();
             boolean isNewRoom = selectedRoom.equals(newRoom);
@@ -101,12 +102,18 @@ public class JoinRoom extends Window {
         frame.pack();
     }
 
+    /**
+     * @param text Error message
+     */
     public void showError(String text) {
         errorLabel.setText(text);
         errorLabel.setVisible(true);
         frame.pack();
     }
 
+    /**
+     * @param callback Called ofter join request is made from GUI
+     */
     public void onJoinSubmit(Lambdas.Function2<Integer, String> callback) {
         joinBtn.addActionListener(e -> {
             RoomInfo selected = (RoomInfo) roomSelectBox.getSelectedItem();
@@ -120,6 +127,9 @@ public class JoinRoom extends Window {
         });
     }
 
+    /**
+     * @param callback Called ofter new room request is made from GUI
+     */
     public void onNewRoomSubmit(Lambdas.Function2<String, String> callback) {
         joinBtn.addActionListener(e -> {
             RoomInfo selected = (RoomInfo) roomSelectBox.getSelectedItem();

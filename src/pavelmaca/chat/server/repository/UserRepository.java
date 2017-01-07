@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
+ * Handle all user related task for DB
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class UserRepository extends Repository {

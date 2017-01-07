@@ -22,12 +22,20 @@ import java.net.Socket;
 import java.util.*;
 
 /**
+ * Represent client connection via socket and handle all incoming requests
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class Session implements Runnable {
 
+    /**
+     * Connected user
+     */
     private User currentUser;
 
+    /**
+     * Session state
+     */
     private States state;
 
     private Socket clientSocket;
@@ -40,6 +48,9 @@ public class Session implements Runnable {
     private RoomRepository roomRepository;
     private MessageRepository messageRepository;
 
+    /**
+     * Map of request handlers by Types
+     */
     private HashMap<Request.Types, Lambdas.Function1<Request>> requestHandlers = new HashMap<>();
 
     public Session(Socket clientSocket, RoomManager roomManager, UserRepository userRepository, RoomRepository roomRepository, MessageRepository messageRepository) {
@@ -81,7 +92,7 @@ public class Session implements Runnable {
                 try {
                     Request request = (Request) inputStream.readObject();
                     synchronized (outputStream) { // prevent other thread send messages to client, until request is processed
-                        processCommand(request);
+                        processRequest(request);
                     }
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
@@ -94,7 +105,14 @@ public class Session implements Runnable {
         }
     }
 
-    private void processCommand(Request request) {
+    /**
+     * Process request from client
+     *
+     * @param request
+     */
+    private void processRequest(Request request) {
+        System.out.println("received: " + request); // debug output
+
         // check access to request type
         if (Arrays.stream(state.getAllowedCommands()).noneMatch(x -> x == request.type)) {
             sendResponse(new ErrorResponse("No access to request: " + request.type));
@@ -112,7 +130,7 @@ public class Session implements Runnable {
     }
 
     private boolean sendResponse(Response response) {
-        // print outgoing error responses
+        // debug: print outgoing error responses
         if (response.hasBody() && response.getCode() == Response.Codes.ERROR) {
             System.out.println("user " + currentUser.getId() + " - " + response.getBody());
         }
@@ -128,18 +146,15 @@ public class Session implements Runnable {
         return false;
     }
 
+    /// client request handlers
 
     private void handleHandShake(Request request) {
-        System.out.println("hand shake received");
         if (sendResponse(new Response(Response.Codes.OK))) {
             state = States.GUEST;
         }
     }
 
     private void handleAuthentication(Request request) {
-        // TODO only one connection per user
-        System.out.println("authentication request received");
-
         Response response = new Response(Response.Codes.OK);
 
         String username = request.getParam("username");
@@ -424,7 +439,12 @@ public class Session implements Runnable {
     }
 
 
-    public void sendCommand(Request request) {
+    /**
+     * Send request to client
+     *
+     * @param request
+     */
+    void sendRequest(Request request) {
         try {
             synchronized (outputStream) {
                 System.out.println("send to: " + currentUser.getName() + " thread:" + Thread.currentThread().getId() + "; " + request);
@@ -435,6 +455,9 @@ public class Session implements Runnable {
         }
     }
 
+    /**
+     * Close current socket
+     */
     private void closeSession() {
         System.out.println("closing session");
 
@@ -464,6 +487,9 @@ public class Session implements Runnable {
         });
     }
 
+    /**
+     * List of session state and allowed requests from clients
+     */
     enum States {
         NEW(new Request.Types[]{
                 Request.Types.HAND_SHAKE,

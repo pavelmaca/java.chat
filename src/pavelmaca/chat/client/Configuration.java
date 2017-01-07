@@ -9,8 +9,17 @@ import java.util.Properties;
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class Configuration {
+
+    /**
+     * Configuration file location
+     */
     private static String configFile = "client.properties";
 
+    /**
+     * Save config to the  file
+     *
+     * @param properties
+     */
     public static void saveConfig(Properties properties) {
         try {
             FileOutputStream outputStream = new FileOutputStream(configFile);
@@ -21,6 +30,11 @@ public class Configuration {
         }
     }
 
+    /**
+     * Try load config from the file if exists
+     *
+     * @return
+     */
     public static Properties loadConfig() {
         Properties properties = new Properties();
         FileInputStream inputStream = null;

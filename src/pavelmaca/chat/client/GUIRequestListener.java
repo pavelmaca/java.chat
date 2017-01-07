@@ -6,14 +6,14 @@ import pavelmaca.chat.share.comunication.Request;
 import javax.swing.*;
 
 /**
- * Created by Assassik on 05.01.2017.
+ * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class GUIRequestListener implements Runnable {
 
-    Main mainWindow;
-    Session session;
+    private Main mainWindow;
+    private Session session;
 
-    boolean running;
+    private boolean running;
 
     public GUIRequestListener(Main mainWindow, Session session) {
         this.mainWindow = mainWindow;
@@ -26,10 +26,13 @@ public class GUIRequestListener implements Runnable {
         while (running) {
             try {
                 Request request = session.getUpdateQueue().takeFirst();
+
+                // DUMMY request is used to stop thread after unexpected closed session
                 if (request.type == Request.Types.DUMMY) {
                     running = false;
                     break;
                 }
+
                 processRequest(request);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -37,6 +40,11 @@ public class GUIRequestListener implements Runnable {
         }
     }
 
+    /**
+     * Process request from server by its Type
+     *
+     * @param request server request
+     */
     private void processRequest(Request request) {
         SwingUtilities.invokeLater(() -> {
             // updating GUI, so need to run inside EDT

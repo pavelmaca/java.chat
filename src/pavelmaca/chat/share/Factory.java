@@ -1,7 +1,7 @@
 package pavelmaca.chat.share;
 
 /**
- * Created by Assassik on 05.01.2017.
+ * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public interface Factory<T> {
     public T create();

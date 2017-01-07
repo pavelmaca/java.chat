@@ -7,13 +7,14 @@ import pavelmaca.chat.share.model.UserInfo;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Set;
 
 /**
+ * Handle all room related task for DB
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class RoomRepository extends Repository {
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     public RoomRepository(Connection connection, UserRepository userRepository) {
         super(connection);
@@ -45,11 +46,6 @@ public class RoomRepository extends Repository {
         }
         return null;
     }
-
-  /*  public Room joinRoom(int roomId, User user) {
-        Room room = findOneById(roomId);
-        return joinRoom(room, user);
-    }*/
 
     public Room findOneById(int roomId) {
         try {
@@ -125,10 +121,8 @@ public class RoomRepository extends Repository {
     }
 
     /**
-     * Get all currently joined rooms for user
-     *
      * @param user
-     * @return
+     * @return all currently joined rooms for user
      */
     public ArrayList<Room> getActiveRooms(User user) {
         ArrayList<Room> rooms = new ArrayList<>();

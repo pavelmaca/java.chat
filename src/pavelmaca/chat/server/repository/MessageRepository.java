@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
+ * Handle all message related task for DB
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class MessageRepository extends Repository {

@@ -60,16 +60,29 @@ public class Connect extends Window {
         frame.getContentPane().add(buttonPane, BorderLayout.PAGE_END);
     }
 
+    /**
+     * @param callback Called after configuration is submitted
+     */
     public void onSubmit(Lambdas.Function3<String, Integer, Boolean> callback) {
         connectBtn.addActionListener(e -> callback.apply(serverIP.getText(), Integer.parseInt(serverPort.getText()), saveCheckBox.isSelected()));
     }
 
+    /**
+     * Setup default values
+     *
+     * @param host
+     * @param port
+     * @param save
+     */
     public void setDefaults(String host, String port, boolean save) {
         serverIP.setText(host);
         serverPort.setText(port);
         saveCheckBox.setSelected(save);
     }
 
+    /**
+     * @param text Error message
+     */
     public void showError(String text) {
         errorLabel.setText(text);
         errorLabel.setVisible(true);

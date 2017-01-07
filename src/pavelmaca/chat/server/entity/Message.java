@@ -5,6 +5,8 @@ import pavelmaca.chat.share.model.MessageInfo;
 import java.util.Date;
 
 /**
+ * Represent table row for message
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class Message {
@@ -32,7 +34,7 @@ public class Message {
         return author;
     }
 
-    public MessageInfo getInfoModel(){
+    public MessageInfo getInfoModel() {
         return new MessageInfo(content, author.getId(), timestamp, author.getName(), roomId);
     }
 }

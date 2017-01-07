@@ -7,7 +7,7 @@ import java.awt.*;
 import java.util.function.Function;
 
 /**
- * Created by Assassik on 07.01.2017.
+ * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class SimpleInputDialog {
 
@@ -49,35 +49,10 @@ public class SimpleInputDialog {
             panel.add(errorLabel);
         }
 
-        //Lay out the buttons from left to right.
-     /*   JPanel buttonPane = new JPanel();
-        buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
-        buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-
-        buttonPane.add(Box.createHorizontalGlue());
-        JButton cancelBtn = new JButton("Cancel");
-        buttonPane.add(cancelBtn);
-
-        JButton okBtn = new JButton("OK");
-        buttonPane.add(okBtn);
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        panel.add(buttonPane);*/
         String[] options = new String[]{"OK", "Cancel"};
         int option = JOptionPane.showOptionDialog(null, panel, title,
                 JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, options, options[1]);
-
-      /*  String userInput = (String) JOptionPane.showInputDialog(
-                parent,
-                message + "\n" + errorMessage,
-                title,
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                null,
-                defaultValue
-        );
-*/
-
 
         if (option == 0) {
             if (validator != null && !validator.apply(inputField.getText())) {

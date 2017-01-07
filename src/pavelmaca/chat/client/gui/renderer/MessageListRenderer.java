@@ -12,24 +12,28 @@ import java.awt.*;
 import java.text.SimpleDateFormat;
 
 /**
+ * Render message list items
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class MessageListRenderer implements ListCellRenderer<MessageInfo> {
 
-    protected UserInfo currentUser;
+    private UserInfo currentUser;
 
     private JPanel panel;
     private JTextArea message;
     private JLabel author;
     private JLabel timestamp;
-    SimpleDateFormat dateFormat;
+    private final SimpleDateFormat dateFormat;
 
 
     public MessageListRenderer(UserInfo currentUser) {
         this.currentUser = currentUser;
 
+        // date format for the message timestamp
         dateFormat = new SimpleDateFormat("dd.MM. HH:mm:ss");
 
+        // setup GUI
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
 
@@ -71,16 +75,6 @@ public class MessageListRenderer implements ListCellRenderer<MessageInfo> {
         ));
         panel.setOpaque(true);
         panel.setBackground(Color.WHITE);
-
-
-     /*   JPanel topPane = new JPanel();
-        topPane.setLayout(new BoxLayout(topPane, BoxLayout.Y_AXIS));
-
-        topPane.add(author);
-        topPane.add(Box.createVerticalGlue());
-
-        panel.add(topPane, BorderLayout.PAGE_START);*/
-
     }
 
     @Override
@@ -89,6 +83,7 @@ public class MessageListRenderer implements ListCellRenderer<MessageInfo> {
         this.message.setText(message.getText());
         this.timestamp.setText(dateFormat.format(message.getTimestamp()));
         int width = list.getWidth();
+
         // this is just to lure the ta's internal sizing mechanism into action
         if (width > 0)
             this.message.setSize(width, Short.MAX_VALUE);
@@ -96,6 +91,5 @@ public class MessageListRenderer implements ListCellRenderer<MessageInfo> {
 
         this.author.setText(message.getAuthorName());
         return panel;
-
     }
 }

@@ -12,17 +12,17 @@ import java.awt.event.MouseEvent;
 import java.util.TreeSet;
 
 /**
- * Created by Assassik on 05.01.2017.
+ * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class UserList implements IComponent<JPanel> {
     private JList<UserInfo> userJList;
-    JPopupMenu popupMenu;
-    JMenuItem banItem;
-    JMenuItem removeBanItem;
+    private JPopupMenu popupMenu;
+    private JMenuItem banItem;
+    private JMenuItem removeBanItem;
 
     private UserInfo currentUserInRoom;
 
-    JPanel panel;
+    private JPanel panel;
 
     public UserList() {
         panel = new JPanel();
@@ -50,7 +50,7 @@ public class UserList implements IComponent<JPanel> {
         removeBanItem = new JMenuItem("Remove ban");
         popupMenu.add(removeBanItem);
 
-        //   roomJList.setComponentPopupMenu(popupMenu);
+        // right click listener
         Lambdas.Function1<MouseEvent> event = (e) -> {
             if (e.isPopupTrigger() && currentUserInRoom.getRank().equals(UserInfo.Rank.OWNER)) { //if the event shows the menu
                 int index = userJList.locationToIndex(e.getPoint());
@@ -91,10 +91,11 @@ public class UserList implements IComponent<JPanel> {
         return panel;
     }
 
-    /* public void update(DefaultListModel<UserInfo> userModel){
-        userJList.setModel(userModel);
-    }*/
 
+    /**
+     * @param userInfo Set of users in room
+     * @param identity Current logged user
+     */
     public void show(TreeSet<UserInfo> userInfo, UserInfo identity) {
         this.currentUserInRoom = identity;
         DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
@@ -102,17 +103,19 @@ public class UserList implements IComponent<JPanel> {
         userJList.setModel(userListModel);
     }
 
-    public void refresh() {
-        userJList.repaint();
-        userJList.updateUI();
-    }
-
+    /**
+     * @param listener Ban button clicked listener
+     */
     public void addBanActionListener(Lambdas.Function1<UserInfo> listener) {
         banItem.addActionListener(e -> {
             listener.apply(userJList.getSelectedValue());
         });
     }
 
+
+    /**
+     * @param listener Remove ban button clicked listener
+     */
     public void addRemoveBanActionListener(Lambdas.Function1<UserInfo> listener) {
         removeBanItem.addActionListener(e -> {
             listener.apply(userJList.getSelectedValue());

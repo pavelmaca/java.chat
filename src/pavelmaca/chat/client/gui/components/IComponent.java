@@ -1,7 +1,7 @@
 package pavelmaca.chat.client.gui.components;
 
 /**
- * Created by Assassik on 07.01.2017.
+ * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public interface IComponent<R> {
     R getComponent();

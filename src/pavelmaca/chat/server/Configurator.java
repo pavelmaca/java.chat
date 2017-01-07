@@ -13,19 +13,22 @@ import java.util.Scanner;
 public class Configurator {
     private static Scanner scanner = new Scanner(System.in);
 
-    public static int getListeningPort(){
+    /**
+     * @return valid listening port
+     */
+    public static int getListeningPort() {
         System.out.println("Enter listening port:");
         int port = 0;
         boolean first = true;
-        while(port >= 65535 || port <=0){
-            if(!first){
+        while (port >= 65535 || port <= 0) {
+            if (!first) {
                 System.out.println("Port number must be between 1 and 65535");
-            }else {
+            } else {
                 first = false;
             }
             try {
                 port = scanner.nextInt();
-            }catch (InputMismatchException e){
+            } catch (InputMismatchException e) {
                 scanner.next();
                 //e.printStackTrace();
             }
@@ -33,15 +36,19 @@ public class Configurator {
         return port;
     }
 
-    public static Properties getDatabaseConfig(String configFile){
+    /**
+     * Try load saved DB config, or ask user for input
+     *
+     * @param configFile
+     * @return Database configuration
+     */
+    public static Properties getDatabaseConfig(String configFile) {
         Properties properties = new Properties();
         try {
             // load connection from config, if exists
             FileInputStream inputStream = new FileInputStream(configFile);
             properties.load(inputStream);
         } catch (IOException e) {
-            //e.printStackTrace();
-
             // Setup connection
             System.out.println("Can not load database configuration.");
 

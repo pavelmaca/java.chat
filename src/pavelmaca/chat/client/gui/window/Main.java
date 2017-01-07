@@ -17,13 +17,20 @@ import java.util.Date;
 import java.util.HashMap;
 
 /**
+ * Main app window containing room list, chat and user list
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class Main extends Window {
 
+    /**
+     * Current logged user
+     */
     private UserInfo identity;
+
     private Session session;
 
+    /* All connected rooms */
     private HashMap<Integer, RoomStatus> roomStatuses = new HashMap<>();
 
     // GUI elements
@@ -46,6 +53,8 @@ public class Main extends Window {
         selectFirstRoom();
 
         chatList.setCurrentUser(identity);
+
+        // message submit callback
         chatList.addMessageSubmitListener((text) -> {
             if (!roomList.isSelected()) {
                 return;
@@ -92,6 +101,8 @@ public class Main extends Window {
 
         userList = new UserList();
 
+        // setup event listeners
+
         roomList.addRoomSelectedListener(room -> {
             if (room == null) return;
 
@@ -120,7 +131,6 @@ public class Main extends Window {
 
             if (newRoomName != null && !newRoomName.isEmpty() && !newRoomName.equals(roomStatus.getRoomInfo().getName())) {
                 if (session.roomChangeName(roomStatus.getRoomInfo().getId(), newRoomName)) {
-                    //TODO check name duplicity on server, also on creation
                     roomStatus.getRoomInfo().setName(newRoomName);
                     roomList.refresh();
                 } else {
@@ -205,6 +215,8 @@ public class Main extends Window {
             }
         });
 
+        // GUI
+
         Container contentPane = frame.getContentPane();
 
         JSplitPane chatSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -218,10 +230,18 @@ public class Main extends Window {
 
     }
 
+    /**
+     * Show error dialog
+     *
+     * @param message Error message
+     */
     private void showError(String message) {
         JOptionPane.showMessageDialog(frame.getContentPane(), message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Open window for joining rooms
+     */
     private void openJoinRoomWindow() {
         ArrayList<RoomInfo> roomList = session.getAvailableRoomList();
 
@@ -248,6 +268,10 @@ public class Main extends Window {
 
     }
 
+    /**
+     * @param room        new room
+     * @param setSelected Set room as selected in list
+     */
     private void addRoom(RoomStatus room, boolean setSelected) {
         roomStatuses.put(room.getRoomInfo().getId(), room);
         roomList.addRoom(room);
@@ -257,6 +281,9 @@ public class Main extends Window {
 
     }
 
+    /**
+     * @param room Removed room
+     */
     private void removeRoom(RoomStatus room) {
         roomStatuses.remove(room);
         roomList.removeRoom(room);
@@ -266,6 +293,9 @@ public class Main extends Window {
 
     }
 
+    /**
+     * Select first room in list
+     */
     private void selectFirstRoom() {
         if (!roomStatuses.isEmpty()) {
             RoomStatus firstRoom = roomStatuses.entrySet().iterator().next().getValue();
@@ -287,6 +317,7 @@ public class Main extends Window {
     }
 
     /// ----- User/server actions
+    /// Triggered by server requests
 
     public void userConnected(int roomId, UserInfo userInfo) {
         if (!roomStatuses.containsKey(roomId)) {

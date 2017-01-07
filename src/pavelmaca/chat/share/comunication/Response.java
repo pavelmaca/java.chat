@@ -30,6 +30,9 @@ public class Response implements Serializable {
         return body != null;
     }
 
+    /**
+     * Status codes
+     */
     public enum Codes {
         OK,
         ERROR,

@@ -7,16 +7,18 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
+ * Render room items
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class RoomListRenderer implements ListCellRenderer<RoomStatus> {
 
-    JLabel nameLabel;
-    JLabel countLabel;
-    JPanel panel;
+    private JLabel nameLabel;
+    private JLabel countLabel;
+    private JPanel panel;
 
     public RoomListRenderer() {
-
+        // setup GUI
         panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
         panel.setBorder(new EmptyBorder(5, 10, 5, 10)); // padding
@@ -32,7 +34,6 @@ public class RoomListRenderer implements ListCellRenderer<RoomStatus> {
 
         Font nameFont = nameLabel.getFont();
 
-        //panel.add(Box.createHorizontalGlue());
         JPanel rightComp = new JPanel();
         rightComp.setLayout(new BoxLayout(rightComp, BoxLayout.X_AXIS));
         rightComp.setOpaque(false);
@@ -43,9 +44,6 @@ public class RoomListRenderer implements ListCellRenderer<RoomStatus> {
         rightComp.add(countLabel);
 
         panel.add(rightComp);
-
-        // panel.add(rightComp);
-
     }
 
     @Override

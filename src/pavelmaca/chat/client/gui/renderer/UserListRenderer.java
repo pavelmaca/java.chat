@@ -11,20 +11,22 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Render user item in list
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class UserListRenderer implements ListCellRenderer<UserInfo> {
 
-    JLabel userNameLabel;
-    JPanel panel;
+    private JLabel userNameLabel;
+    private JPanel panel;
 
-    JLabel adminLabel;
-    JLabel statusLabel;
+    private JLabel adminLabel;
+    private JLabel statusLabel;
 
-    ImageIcon onlineIcon = null;
-    ImageIcon offlineIcon = null;
-    ImageIcon admineIcon = null;
-    ImageIcon banIcon = null;
+    private ImageIcon onlineIcon = null;
+    private ImageIcon offlineIcon = null;
+    private ImageIcon admineIcon = null;
+    private ImageIcon banIcon = null;
 
     public UserListRenderer() {
         userNameLabel = new JLabel();
@@ -33,6 +35,7 @@ public class UserListRenderer implements ListCellRenderer<UserInfo> {
         adminLabel.setBorder(new EmptyBorder(0, 0, 0, 5));
         statusLabel = new JLabel("");
 
+        // load image icons
         try {
             BufferedImage onlineImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/online.png"));
             onlineIcon = new ImageIcon(onlineImage);
@@ -48,8 +51,7 @@ public class UserListRenderer implements ListCellRenderer<UserInfo> {
         }
 
         try {
-            BufferedImage adminImage = null;
-            adminImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/admin.png"));
+            BufferedImage adminImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/admin.png"));
             admineIcon = new ImageIcon(adminImage.getScaledInstance(16, 16, Image.SCALE_SMOOTH));
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,6 +64,7 @@ public class UserListRenderer implements ListCellRenderer<UserInfo> {
             e.printStackTrace();
         }
 
+        // setup GUI
         adminLabel.setIcon(admineIcon);
         adminLabel.setVisible(false);
 

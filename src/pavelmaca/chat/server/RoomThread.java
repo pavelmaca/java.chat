@@ -13,22 +13,43 @@ import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
+ * Handle all room outgoing connection to all connected users
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class RoomThread implements Runnable {
 
+    /**
+     * List of connected user via socket
+     */
     private HashMap<User, Session> activeUsers = new HashMap<>();
 
+    /**
+     * All requests are stored in blocking queue
+     */
     private LinkedBlockingDeque<Request> requestQueue = new LinkedBlockingDeque<>();
+
+    /**
+     * Current room info
+     */
     private Room room;
 
     private boolean running = false;
+
+    /**
+     * Dummy request to stop running thread
+     */
     final private static Request dummy = new Request(Request.Types.DUMMY);
 
     public RoomThread(Room room) {
         this.room = room;
     }
 
+    /**
+     * Send new message to all clients
+     *
+     * @param message
+     */
     public void receiveMessage(Message message) {
         try {
             System.out.println("room " + room.getId() + " received message " + message.getContent());
@@ -41,18 +62,31 @@ public class RoomThread implements Runnable {
         }
     }
 
+    /**
+     * @return all connected user via socket to this room
+     */
     public Set<User> getConnectedUsers() {
         synchronized (activeUsers) {
             return activeUsers.keySet();
         }
     }
 
+    /**
+     * @param user
+     * @return true, if  user is connected via socket to this room
+     */
     public boolean hasUser(User user) {
         synchronized (activeUsers) {
             return activeUsers.containsKey(user);
         }
     }
 
+    /**
+     * Connect user socket to current room
+     *
+     * @param user
+     * @param session
+     */
     public void connect(User user, Session session) {
         synchronized (activeUsers) {
             System.out.println("user " + user.getName() + " connected to room " + room.getId());
@@ -73,7 +107,7 @@ public class RoomThread implements Runnable {
     }
 
     /**
-     * Disonect is invoked from session thread of current user
+     * Disconnect is invoked from session thread of current user
      *
      * @param user
      */
@@ -91,21 +125,22 @@ public class RoomThread implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-          /*  activeUsers.remove(user);
-            if (activeUsers.isEmpty()) {
-                stopThread();
-            }*/
         }
     }
 
+    /**
+     * Send leave info to all clients
+     *
+     * @param user
+     * @param force
+     */
     public void leave(User user, boolean force) {
         synchronized (activeUsers) {
             System.out.println("user " + user.getName() + " leave from room " + room.getId());
             Request request = new Request(Request.Types.ROOM_USER_LEAVE);
             request.addParameter("roomId", room.getId());
             request.addParameter("userId", user.getId());
-            if(!force){
+            if (!force) {
                 request.addParameter("authorId", user.getId());
             }
 
@@ -114,11 +149,6 @@ public class RoomThread implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-          /*  activeUsers.remove(user);
-            if (activeUsers.isEmpty()) {
-                stopThread();
-            }*/
         }
     }
 
@@ -158,23 +188,15 @@ public class RoomThread implements Runnable {
                     while (iterator.hasNext()) {
                         Map.Entry<User, Session> userSessionEntry = iterator.next();
 
-                        //TODO make it as property ?
                         if (!request.hasParam("authorId") || userSessionEntry.getKey().getId() != (Integer) request.getParam("authorId")) {
-                            userSessionEntry.getValue().sendCommand(request);
+                            userSessionEntry.getValue().sendRequest(request);
                         }
 
-                        // remove user from queue after sending room disconnect
-                        if ((request.getType() == Request.Types.ROOM_USER_DISCONNECTED ||  request.getType() == Request.Types.ROOM_USER_LEAVE) && userSessionEntry.getKey().getId() == (Integer) request.getParam("userId")) {
+                        // remove user from queue after sending room disconnect or leave
+                        if ((request.getType() == Request.Types.ROOM_USER_DISCONNECTED || request.getType() == Request.Types.ROOM_USER_LEAVE) && userSessionEntry.getKey().getId() == (Integer) request.getParam("userId")) {
                             iterator.remove();
                         }
                     }
-                    /*
-                    activeUsers.entrySet().parallelStream().forEach(e -> {
-                        //TODO make it as property ?
-                        if (!request.hasParam("authorId") || e.getKey().getId() != (Integer) request.getParam("authorId")) {
-                            e.getValue().sendCommand(request);
-                        }
-                    });*/
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();

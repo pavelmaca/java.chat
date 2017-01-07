@@ -6,15 +6,17 @@ import javax.swing.*;
 import java.awt.event.ActionListener;
 
 /**
- * Created by Assassik on 05.01.2017.
+ * Main header menu
+ *
+ * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class HeaderMenu implements IComponent<JMenuBar> {
 
-    JMenuItem disconnectItem = new JMenuItem("Disconnect");
-    JMenuItem logoutItem = new JMenuItem("Logout");
-    JMenuItem changePasswordItem = new JMenuItem("Change password");
+    private JMenuItem disconnectItem = new JMenuItem("Disconnect");
+    private JMenuItem logoutItem = new JMenuItem("Logout");
+    private JMenuItem changePasswordItem = new JMenuItem("Change password");
 
-    JMenuBar menuBar;
+    private JMenuBar menuBar;
 
     public HeaderMenu() {
         menuBar = new JMenuBar();
@@ -34,14 +36,23 @@ public class HeaderMenu implements IComponent<JMenuBar> {
         return menuBar;
     }
 
+    /**
+     * @param listener Disconnect button listener
+     */
     public void addDisconnectActionListener(ActionListener listener) {
         disconnectItem.addActionListener(listener);
     }
 
+    /**
+     * @param listener Logout button listener
+     */
     public void addLogoutActionListener(ActionListener listener) {
         logoutItem.addActionListener(listener);
     }
 
+    /**
+     * @param listener Change user password listener
+     */
     public void addChangePasswordActionListener(ActionListener listener) {
         changePasswordItem.addActionListener(listener);
     }

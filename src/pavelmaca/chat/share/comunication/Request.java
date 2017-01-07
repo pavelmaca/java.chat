@@ -34,12 +34,15 @@ public class Request implements Serializable {
 
     @Override
     public String toString() {
-       return "Request{" +
+        return "Request{" +
                 "type=" + type +
                 ", parameters=" + parameters +
                 '}';
     }
 
+    /**
+     * Request types
+     */
     public enum Types {
         // client -> server
         HAND_SHAKE,
@@ -50,15 +53,19 @@ public class Request implements Serializable {
         ROOM_GET_AVAILABLE_LIST,
         CLOSE,
 
-        // server -> client
         ROOM_USER_CONNECTED,
         ROOM_USER_DISCONNECTED,
         DUMMY,
         LOGOUT,
         USER_CHANGE_PASSWORD,
         USER_STATUS,
-        ROOM_USER_LEAVE, ROOM_CHANHE_NAME, ROOM_CHANGE_PASSWORD, ROOM_REMOVE_PASSWORD, ROOM_DELETE, ROOM_USER_BAN, ROOM_USER_BAN_REMOVE,
-      /*  ROOM_USER_JOINED,
-        ROOM_USER_LEAVE,*/
+        ROOM_USER_LEAVE,
+        ROOM_CHANHE_NAME,
+        ROOM_CHANGE_PASSWORD,
+        ROOM_REMOVE_PASSWORD,
+        ROOM_DELETE,
+        ROOM_USER_BAN,
+        ROOM_USER_BAN_REMOVE,
+
     }
 }

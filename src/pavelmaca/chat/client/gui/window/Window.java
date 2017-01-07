@@ -7,6 +7,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 /**
+ * Basic window
+ *
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public abstract class Window {
@@ -32,7 +34,10 @@ public abstract class Window {
         frame.setVisible(true);
     }
 
-    public void addWindowsCloseListener(Lambdas.Function0 callback){
+    /**
+     * @param callback Called after the window event is triggered
+     */
+    public void addWindowsCloseListener(Lambdas.Function0 callback) {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -41,10 +46,16 @@ public abstract class Window {
         });
     }
 
+    /**
+     * Close current windows by triggering close event
+     */
     public void close() {
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
 
 
+    /**
+     * Create GUI
+     */
     protected abstract void setupComponents();
 }
