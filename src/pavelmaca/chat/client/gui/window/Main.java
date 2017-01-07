@@ -6,8 +6,6 @@ import pavelmaca.chat.client.gui.components.HeaderMenu;
 import pavelmaca.chat.client.gui.components.RoomList;
 import pavelmaca.chat.client.gui.components.UserList;
 import pavelmaca.chat.share.Lambdas;
-import pavelmaca.chat.client.gui.renderer.MessageListRenderer;
-import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.MessageInfo;
 import pavelmaca.chat.share.model.RoomInfo;
 import pavelmaca.chat.share.model.RoomStatus;
@@ -19,14 +17,13 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
  */
 public class Main extends Window {
 
-    //private User currentUser;
+    private UserInfo currentUser;
     private Session session;
 
     private HashMap<Integer, RoomStatus> roomStatuses = new HashMap<>();
@@ -39,10 +36,12 @@ public class Main extends Window {
 
     private boolean closingForLogout = false;
 
-    public Main(Session session, HashMap<Integer, RoomStatus> roomStatus, User currentUser) {
+    public Main(Session session, HashMap<Integer, RoomStatus> roomStatus, UserInfo currentUser) {
         super("Chat");
-        //  this.currentUser = currentUser;
+        this.currentUser = currentUser;
         this.session = session;
+
+        roomList.setCurrentUser(currentUser);
 
         roomStatuses = roomStatus;
         roomStatuses.forEach((integer, statusUpdate) -> roomList.addRoom(statusUpdate));
@@ -101,7 +100,7 @@ public class Main extends Window {
             //change window title to room name
             frame.setTitle(room.getRoomInfo().getName());
             System.out.println("selected room " + room.getRoomInfo().getId());
-            userList.show(room.getUserList());
+            userList.show(room.getUserList(), room.getUserInfo(currentUser));
             chatList.show(room.getMessages());
         });
 
@@ -181,7 +180,7 @@ public class Main extends Window {
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userConnected(userInfo);
         if (roomList.getSelected().equals(roomStatus)) {
-            userList.show(roomStatus.getUserList());
+            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(currentUser));
         }
         roomList.refresh();
     }
@@ -190,7 +189,7 @@ public class Main extends Window {
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userDisconnected(userId);
         if (roomList.getSelected().equals(roomStatus)) {
-            userList.show(roomStatus.getUserList());
+            userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(currentUser));
         }
         roomList.refresh();
     }

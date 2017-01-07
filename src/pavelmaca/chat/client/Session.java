@@ -4,6 +4,7 @@ import pavelmaca.chat.share.comunication.Request;
 import pavelmaca.chat.share.comunication.Response;
 import pavelmaca.chat.share.model.RoomInfo;
 import pavelmaca.chat.share.model.RoomStatus;
+import pavelmaca.chat.share.model.UserInfo;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -88,10 +89,21 @@ public class Session implements Runnable {
         }
     }
 
-    public HashMap<Integer, RoomStatus> authenticate(String username, String password) {
+    public UserInfo authenticate(String username, String password) {
         Request request = new Request(Request.Types.AUTHENTICATION);
         request.addParameter("username", username);
         request.addParameter("password", password);
+
+        Response response = sendRequest(request);
+
+        if (response.getCode() == Response.Codes.OK) {
+            return response.getBody();
+        }
+        return null;
+    }
+
+    public HashMap<Integer, RoomStatus> getStatus() {
+        Request request = new Request(Request.Types.USER_STATUS);
 
         Response response = sendRequest(request);
 

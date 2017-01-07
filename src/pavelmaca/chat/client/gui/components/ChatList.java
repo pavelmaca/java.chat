@@ -23,7 +23,7 @@ public class ChatList implements Factory<JPanel> {
     private JTextField message = new JTextField();
     private JButton sendBtn = new JButton("Send");
 
-    private User currentUser;
+    private UserInfo currentUser;
 
     @Override
     public JPanel create() {
@@ -92,7 +92,7 @@ public class ChatList implements Factory<JPanel> {
         chatJList.ensureIndexIsVisible(chatListModel.size() - 1);
     }
 
-    public void setCurrentUser(User currentUser) {
+    public void setCurrentUser(UserInfo currentUser) {
         this.currentUser = currentUser;
     }
 }

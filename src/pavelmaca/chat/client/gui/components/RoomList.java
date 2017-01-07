@@ -4,6 +4,7 @@ import pavelmaca.chat.client.gui.renderer.RoomListRenderer;
 import pavelmaca.chat.share.Factory;
 import pavelmaca.chat.share.Lambdas;
 import pavelmaca.chat.share.model.RoomStatus;
+import pavelmaca.chat.share.model.UserInfo;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -20,6 +21,12 @@ public class RoomList implements Factory<JPanel> {
     final private DefaultListModel<RoomStatus> roomListModel = new DefaultListModel<>();
     private JList<RoomStatus> roomJList = new JList<>();
     private JButton joinRoomBtn = new JButton("Join room");
+
+    JMenuItem renameRoomItem;
+    JMenuItem changePasswordRoomItem;
+    JMenuItem deleteRoomItem;
+
+    private UserInfo currentUser = null;
 
     @Override
     public JPanel create() {
@@ -38,14 +45,14 @@ public class RoomList implements Factory<JPanel> {
         roomJList.setCellRenderer(new RoomListRenderer());
 
         JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem disconnectRoom = new JMenuItem("Disconnect");
-        popupMenu.add(disconnectRoom);
-        JMenuItem renameRoom = new JMenuItem("Rename");
-        popupMenu.add(renameRoom);
-        JMenuItem changePasswordRoom = new JMenuItem("Change password");
-        popupMenu.add(changePasswordRoom);
-        JMenuItem deleteRoom = new JMenuItem("Delete");
-        popupMenu.add(deleteRoom);
+        JMenuItem disconnectRoomItem = new JMenuItem("Disconnect");
+        popupMenu.add(disconnectRoomItem);
+        renameRoomItem = new JMenuItem("Rename");
+        popupMenu.add(renameRoomItem);
+        changePasswordRoomItem = new JMenuItem("Change password");
+        popupMenu.add(changePasswordRoomItem);
+        deleteRoomItem = new JMenuItem("Delete");
+        popupMenu.add(deleteRoomItem);
 
         //   roomJList.setComponentPopupMenu(popupMenu);
         Lambdas.Function1<MouseEvent> event = (e) -> {
@@ -58,6 +65,13 @@ public class RoomList implements Factory<JPanel> {
                 }
 
                 roomJList.setSelectedIndex(index); //select the item
+
+                RoomStatus selectedRoom = roomJList.getSelectedValue();
+                boolean isOwner = selectedRoom.getUserInfo(currentUser).getRank() == UserInfo.Rank.OWNER;
+                renameRoomItem.setVisible(isOwner);
+                changePasswordRoomItem.setVisible(isOwner);
+                deleteRoomItem.setVisible(isOwner);
+
                 popupMenu.show(roomJList, e.getX(), e.getY()); //and show the menu
             }
         };
@@ -121,9 +135,12 @@ public class RoomList implements Factory<JPanel> {
         });
     }
 
-    public void refresh(){
+    public void refresh() {
         roomJList.repaint();
     }
 
 
+    public void setCurrentUser(UserInfo currentUser) {
+        this.currentUser = currentUser;
+    }
 }

@@ -20,7 +20,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Pavel Máca <maca.pavel@gmail.com>
@@ -54,6 +53,7 @@ public class Session implements Runnable {
         // Setup handlers
         requestHandlers.put(Request.Types.HAND_SHAKE, this::handleHandShake);
         requestHandlers.put(Request.Types.AUTHENTICATION, this::handleAuthentication);
+        requestHandlers.put(Request.Types.USER_STATUS, this::handleUserStatus);
         requestHandlers.put(Request.Types.CLOSE, request -> this.closeSession());
         requestHandlers.put(Request.Types.ROOM_GET_AVAILABLE_LIST, this::handleRetrieveAvailableRoomList);
         requestHandlers.put(Request.Types.ROOM_CREATE, this::handleCreateRoom);
@@ -143,6 +143,14 @@ public class Session implements Runnable {
             return;
         }
 
+        response.setBody(currentUser.getInfoModel());
+        if (sendResponse(response)) {
+            state = States.AUTHENTICATED;
+        }
+
+    }
+
+    private void handleUserStatus(Request request) {
         HashMap<Integer, RoomStatus> activeRoomsStatus = new HashMap<>();
         ArrayList<Room> activeRooms = roomRepository.getActiveRooms(currentUser);
         activeRooms.forEach(room -> {
@@ -150,12 +158,9 @@ public class Session implements Runnable {
             activeRoomsStatus.put(room.getId(), roomStatus);
         });
 
-
+        Response response = new Response(Response.Codes.OK);
         response.setBody(activeRoomsStatus);
-
-        if (sendResponse(response)) {
-            state = States.AUTHENTICATED;
-        }
+        sendResponse(response);
     }
 
     private RoomStatus getRoomStatus(Room room) {
@@ -331,6 +336,7 @@ public class Session implements Runnable {
                 Request.Types.CLOSE,
                 Request.Types.LOGOUT,
                 Request.Types.USER_CHANGE_PASSWORD,
+                Request.Types.USER_STATUS,
         });
 
         protected Request.Types[] allowedCommands;

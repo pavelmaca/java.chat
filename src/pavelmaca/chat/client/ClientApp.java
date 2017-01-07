@@ -6,6 +6,7 @@ import pavelmaca.chat.client.gui.window.Main;
 import pavelmaca.chat.client.gui.window.Login;
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.RoomStatus;
+import pavelmaca.chat.share.model.UserInfo;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -75,8 +76,8 @@ public class ClientApp implements Runnable {
     private void openAuthenticationWindow() {
         Login loginWindow = new Login();
         loginWindow.onSubmit((username, password) -> {
-            HashMap<Integer, RoomStatus> roomStatuInfos = session.authenticate(username, password);
-            if (roomStatuInfos == null) {
+            UserInfo identity = session.authenticate(username, password);
+            if (identity == null) {
                 loginWindow.showError("Invalid credencials.");
                 return;
             }
@@ -85,7 +86,9 @@ public class ClientApp implements Runnable {
 
             loginWindow.close();
 
-            openChatWindow(roomStatuInfos, new User(0, username, password));
+            HashMap<Integer, RoomStatus> roomStatusInfo = session.getStatus();
+
+            openChatWindow(roomStatusInfo, identity);
         });
         loginWindow.onCancel(() -> {
             loginWindow.close();
@@ -95,7 +98,7 @@ public class ClientApp implements Runnable {
 
     }
 
-    private void openChatWindow(HashMap<Integer, RoomStatus> roomStatusInfo, User identity) {
+    private void openChatWindow(HashMap<Integer, RoomStatus> roomStatusInfo, UserInfo identity) {
         if (identity == null) {
             openAuthenticationWindow();
             return;

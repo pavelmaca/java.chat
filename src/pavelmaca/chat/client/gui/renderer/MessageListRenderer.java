@@ -2,6 +2,7 @@ package pavelmaca.chat.client.gui.renderer;
 
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.MessageInfo;
+import pavelmaca.chat.share.model.UserInfo;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -15,7 +16,7 @@ import java.text.SimpleDateFormat;
  */
 public class MessageListRenderer implements ListCellRenderer<MessageInfo> {
 
-    protected User currentUser;
+    protected UserInfo currentUser;
 
     private JPanel panel;
     private JTextArea message;
@@ -24,7 +25,7 @@ public class MessageListRenderer implements ListCellRenderer<MessageInfo> {
     SimpleDateFormat dateFormat;
 
 
-    public MessageListRenderer(User currentUser) {
+    public MessageListRenderer(UserInfo currentUser) {
         this.currentUser = currentUser;
 
         dateFormat = new SimpleDateFormat("dd.MM. HH:mm:ss");

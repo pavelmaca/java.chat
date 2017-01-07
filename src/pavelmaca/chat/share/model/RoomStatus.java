@@ -1,5 +1,7 @@
 package pavelmaca.chat.share.model;
 
+import pavelmaca.chat.server.entity.User;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -83,4 +85,12 @@ public class RoomStatus implements Serializable {
         }
     }
 
+    public UserInfo getUserInfo(UserInfo currentUser) {
+        for (UserInfo userInfo : userList) {
+            if (userInfo.equals(currentUser)) {
+                return userInfo;
+            }
+        }
+        return null;
+    }
 }

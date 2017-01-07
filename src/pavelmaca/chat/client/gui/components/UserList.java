@@ -18,6 +18,11 @@ import java.util.TreeSet;
  */
 public class UserList implements Factory<JPanel> {
     private JList<UserInfo> userJList;
+    JPopupMenu popupMenu;
+    JMenuItem banPopupItem;
+    JMenuItem removeBanPopupItem;
+
+    private UserInfo currentUserInRoom;
 
     public JPanel create() {
         JPanel panel = new JPanel();
@@ -39,15 +44,15 @@ public class UserList implements Factory<JPanel> {
         userJList.setMinimumSize(minimumSize);
         panel.setMinimumSize(minimumSize);
 
-        JPopupMenu popupMenu = new JPopupMenu();
-        JMenuItem disconnectRoom = new JMenuItem("Ban");
-        popupMenu.add(disconnectRoom);
-        JMenuItem renameRoom = new JMenuItem("Remove ban");
-        popupMenu.add(renameRoom);
+        popupMenu = new JPopupMenu();
+        banPopupItem = new JMenuItem("Ban");
+        popupMenu.add(banPopupItem);
+        removeBanPopupItem = new JMenuItem("Remove ban");
+        popupMenu.add(removeBanPopupItem);
 
         //   roomJList.setComponentPopupMenu(popupMenu);
         Lambdas.Function1<MouseEvent> event = (e) -> {
-            if (e.isPopupTrigger()) { //if the event shows the menu
+            if (e.isPopupTrigger() && currentUserInRoom.getRank().equals(UserInfo.Rank.OWNER)) { //if the event shows the menu
                 int index = userJList.locationToIndex(e.getPoint());
 
                 // check if event is triggered on cell
@@ -56,6 +61,13 @@ public class UserList implements Factory<JPanel> {
                 }
 
                 userJList.setSelectedIndex(index); //select the item
+                UserInfo selectedUser = userJList.getSelectedValue();
+                if (selectedUser.equals(currentUserInRoom)) {
+                    return;
+                }
+                banPopupItem.setVisible(selectedUser.getStatus() != UserInfo.Status.BANNED);
+                removeBanPopupItem.setVisible(selectedUser.getStatus() == UserInfo.Status.BANNED);
+
                 popupMenu.show(userJList, e.getX(), e.getY()); //and show the menu
             }
         };
@@ -80,7 +92,8 @@ public class UserList implements Factory<JPanel> {
         userJList.setModel(userModel);
     }*/
 
-    public void show(TreeSet<UserInfo> userInfo) {
+    public void show(TreeSet<UserInfo> userInfo, UserInfo currentUserInRoom) {
+        this.currentUserInRoom = currentUserInRoom;
         DefaultListModel<UserInfo> userListModel = new DefaultListModel<>();
         userInfo.forEach(userListModel::addElement);
         userJList.setModel(userListModel);
