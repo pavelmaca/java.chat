@@ -40,4 +40,15 @@ public class MessageInfo implements Serializable {
     public int getRoomId() {
         return roomId;
     }
+
+    @Override
+    public String toString() {
+        return "MessageInfo{" +
+                "text='" + text + '\'' +
+                ", authorId=" + authorId +
+                ", authorName='" + authorName + '\'' +
+                ", timestamp=" + timestamp +
+                ", roomId=" + roomId +
+                '}';
+    }
 }

@@ -60,7 +60,12 @@ public class UserInfo implements Serializable, Comparable<UserInfo> {
     @Override
     public int compareTo(UserInfo o) {
         int rankCompare = getRank().compareTo(o.getRank());
-        return rankCompare != 0 ? rankCompare : getName().compareTo(o.getName());
+        if (rankCompare != 0) {
+            return rankCompare;
+        }
+
+        int statusCompare = getStatus().compareTo(o.getStatus());
+        return statusCompare != 0 ? statusCompare : getName().compareTo(o.getName());
 
     }
 

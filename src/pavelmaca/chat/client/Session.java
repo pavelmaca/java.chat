@@ -44,7 +44,7 @@ public class Session implements Runnable {
                     responseQueue.put((Response) inputObject);
                 } else {
                     Request request = (Request) inputObject;
-                    System.out.println("Received coomand " + request.getType());
+                    System.out.println("received "+request);
                     updateQueue.putLast(request);
                 }
             } catch (IOException | InterruptedException | ClassNotFoundException e) {

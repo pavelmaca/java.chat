@@ -299,10 +299,6 @@ public class Session implements Runnable {
         });
     }
 
-    public void sendDisconect() {
-        sendCommand(new Request(Request.Types.CLOSE));
-    }
-
     private void handleChangeUserPassword(Request request) {
         String newPassword = request.getParam("password");
         if (newPassword.length() > 0) {
@@ -431,6 +427,7 @@ public class Session implements Runnable {
     public void sendCommand(Request request) {
         try {
             synchronized (outputStream) {
+                System.out.println("send to: " + currentUser.getName() + " thread:" + Thread.currentThread().getId() + "; " + request);
                 outputStream.writeObject(request);
             }
         } catch (IOException e) {

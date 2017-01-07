@@ -289,6 +289,9 @@ public class Main extends Window {
     /// ----- User/server actions
 
     public void userConnected(int roomId, UserInfo userInfo) {
+        if (!roomStatuses.containsKey(roomId)) {
+            return;
+        }
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userConnected(userInfo);
         if (roomList.getSelected().equals(roomStatus)) {
@@ -298,6 +301,9 @@ public class Main extends Window {
     }
 
     public void userDisconnected(int roomId, int userId) {
+        if (!roomStatuses.containsKey(roomId)) {
+            return;
+        }
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userDisconnected(userId);
         if (roomList.getSelected().equals(roomStatus)) {
@@ -307,6 +313,9 @@ public class Main extends Window {
     }
 
     public void messageReceived(MessageInfo message) {
+        if (!roomStatuses.containsKey(message.getRoomId())) {
+            return;
+        }
         RoomStatus roomStatus = roomStatuses.get(message.getRoomId());
         roomStatus.addMessage(message);
         if (roomList.getSelected().equals(roomStatus)) {
@@ -315,6 +324,9 @@ public class Main extends Window {
     }
 
     public void userLeft(int roomId, int userId) {
+        if (!roomStatuses.containsKey(roomId)) {
+            return;
+        }
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userLeave(userId);
         if (roomList.getSelected().equals(roomStatus)) {
@@ -329,12 +341,18 @@ public class Main extends Window {
     }
 
     public void roomChangeName(int roomId, String newName) {
+        if (!roomStatuses.containsKey(roomId)) {
+            return;
+        }
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.getRoomInfo().setName(newName);
         roomList.refresh();
     }
 
     public void roomBanUser(int roomId, UserInfo user) {
+        if (!roomStatuses.containsKey(roomId)) {
+            return;
+        }
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userBan(user);
         if (roomList.getSelected().equals(roomStatus)) {
@@ -344,6 +362,9 @@ public class Main extends Window {
     }
 
     public void roomRemoveBanUser(int roomId, int userId) {
+        if (!roomStatuses.containsKey(roomId)) {
+            return;
+        }
         RoomStatus roomStatus = roomStatuses.get(roomId);
         roomStatus.userRemoveBan(userId);
         if (roomList.getSelected().equals(roomStatus)) {

@@ -32,6 +32,14 @@ public class Request implements Serializable {
         return parameters.containsKey(authorId);
     }
 
+    @Override
+    public String toString() {
+       return "Request{" +
+                "type=" + type +
+                ", parameters=" + parameters +
+                '}';
+    }
+
     public enum Types {
         // client -> server
         HAND_SHAKE,
