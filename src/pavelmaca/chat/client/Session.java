@@ -304,7 +304,7 @@ public class Session implements Runnable {
      * @return true on success
      */
     public boolean roomChangeName(int roomId, String newRoomName) {
-        Request request = new Request(Request.Types.ROOM_CHANHE_NAME);
+        Request request = new Request(Request.Types.ROOM_CHANGE_NAME);
         request.addParameter("name", newRoomName);
         request.addParameter("roomId", roomId);
         Response response = sendRequest(request);

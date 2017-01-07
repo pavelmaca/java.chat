@@ -25,7 +25,7 @@ public class UserListRenderer implements ListCellRenderer<UserInfo> {
 
     private ImageIcon onlineIcon = null;
     private ImageIcon offlineIcon = null;
-    private ImageIcon admineIcon = null;
+    private ImageIcon adminIcon = null;
     private ImageIcon banIcon = null;
 
     public UserListRenderer() {
@@ -52,7 +52,7 @@ public class UserListRenderer implements ListCellRenderer<UserInfo> {
 
         try {
             BufferedImage adminImage = ImageIO.read(new File("src/pavelmaca/chat/client/resources/admin.png"));
-            admineIcon = new ImageIcon(adminImage.getScaledInstance(16, 16, Image.SCALE_SMOOTH));
+            adminIcon = new ImageIcon(adminImage.getScaledInstance(16, 16, Image.SCALE_SMOOTH));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -65,7 +65,7 @@ public class UserListRenderer implements ListCellRenderer<UserInfo> {
         }
 
         // setup GUI
-        adminLabel.setIcon(admineIcon);
+        adminLabel.setIcon(adminIcon);
         adminLabel.setVisible(false);
 
         panel = new JPanel();

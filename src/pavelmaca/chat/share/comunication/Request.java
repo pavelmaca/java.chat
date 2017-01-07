@@ -60,7 +60,7 @@ public class Request implements Serializable {
         USER_CHANGE_PASSWORD,
         USER_STATUS,
         ROOM_USER_LEAVE,
-        ROOM_CHANHE_NAME,
+        ROOM_CHANGE_NAME,
         ROOM_CHANGE_PASSWORD,
         ROOM_REMOVE_PASSWORD,
         ROOM_DELETE,

@@ -73,7 +73,7 @@ public class Session implements Runnable {
         requestHandlers.put(Request.Types.ROOM_USER_LEAVE, this::handleLeaveRoom);
         requestHandlers.put(Request.Types.LOGOUT, this::handleLogout);
         requestHandlers.put(Request.Types.USER_CHANGE_PASSWORD, this::handleChangeUserPassword);
-        requestHandlers.put(Request.Types.ROOM_CHANHE_NAME, this::handleChangeRoomName);
+        requestHandlers.put(Request.Types.ROOM_CHANGE_NAME, this::handleChangeRoomName);
         requestHandlers.put(Request.Types.ROOM_CHANGE_PASSWORD, this::handleChangeRoomPassword);
         requestHandlers.put(Request.Types.ROOM_REMOVE_PASSWORD, this::handleRemoveRoomPassword);
         requestHandlers.put(Request.Types.ROOM_DELETE, this::handleDeleteRoom);
@@ -205,7 +205,7 @@ public class Session implements Runnable {
                     if (room.getOwner().getId() == user.getId()) {
                         userInfo.setRank(UserInfo.Rank.OWNER);
                     } else {
-                        userInfo.setRank(UserInfo.Rank.MEMEBER);
+                        userInfo.setRank(UserInfo.Rank.MEMBER);
                     }
                     userList.add(userInfo);
                 });
@@ -269,7 +269,7 @@ public class Session implements Runnable {
     }
 
     private void handleJoinRoom(Request request) {
-        System.out.println("join room request recieved");
+        System.out.println("join room request received");
 
         int roomId = request.getParam("roomId");
         String password = request.getParam("password");
@@ -294,7 +294,7 @@ public class Session implements Runnable {
     }
 
     private void handleLeaveRoom(Request request) {
-        System.out.println("leave room request recieved");
+        System.out.println("leave room request received");
 
         int roomId = request.getParam("roomId");
 
@@ -384,7 +384,7 @@ public class Session implements Runnable {
         if (room.getOwner().getId() == currentUser.getId()) {
             boolean status = roomRepository.delete(room);
             if (status) {
-                roomThread.disconnetAll();
+                roomThread.disconnectAll();
                 roomManager.purgeRoomThread(room);
                 sendResponse(new Response(Response.Codes.OK));
                 return;
@@ -510,7 +510,7 @@ public class Session implements Runnable {
                 Request.Types.LOGOUT,
                 Request.Types.USER_CHANGE_PASSWORD,
                 Request.Types.USER_STATUS,
-                Request.Types.ROOM_CHANHE_NAME,
+                Request.Types.ROOM_CHANGE_NAME,
                 Request.Types.ROOM_CHANGE_PASSWORD,
                 Request.Types.ROOM_REMOVE_PASSWORD,
                 Request.Types.ROOM_DELETE,

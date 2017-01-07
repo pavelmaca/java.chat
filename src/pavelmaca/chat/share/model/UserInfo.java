@@ -1,7 +1,5 @@
 package pavelmaca.chat.share.model;
 
-import pavelmaca.chat.server.entity.User;
-
 import java.io.Serializable;
 
 /**
@@ -10,7 +8,7 @@ import java.io.Serializable;
 public class UserInfo implements Serializable, Comparable<UserInfo> {
     private int id;
     private String name;
-    private Rank rank = Rank.MEMEBER;
+    private Rank rank = Rank.MEMBER;
     private Status status;
 
     public UserInfo(int id, String name) {
@@ -71,7 +69,7 @@ public class UserInfo implements Serializable, Comparable<UserInfo> {
 
     public enum Rank {
         OWNER,
-        MEMEBER
+        MEMBER
     }
 
     public enum Status {

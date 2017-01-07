@@ -22,7 +22,7 @@ public class RoomThread implements Runnable {
     /**
      * List of connected user via socket
      */
-    private HashMap<User, Session> activeUsers = new HashMap<>();
+    private final HashMap<User, Session> activeUsers = new HashMap<>();
 
     /**
      * All requests are stored in blocking queue
@@ -93,7 +93,7 @@ public class RoomThread implements Runnable {
             Request request = new Request(Request.Types.ROOM_USER_CONNECTED);
             request.addParameter("roomId", room.getId());
             UserInfo userInfo = user.getInfoModel();
-            userInfo.setRank(room.getOwner().getId() == user.getId() ? UserInfo.Rank.OWNER : UserInfo.Rank.MEMEBER);
+            userInfo.setRank(room.getOwner().getId() == user.getId() ? UserInfo.Rank.OWNER : UserInfo.Rank.MEMBER);
             request.addParameter("user", userInfo);
             request.addParameter("authorId", user.getId());
             try {
@@ -208,7 +208,7 @@ public class RoomThread implements Runnable {
 
     public void changeRoomName(String newName) {
         getRoom().setName(newName);
-        Request request = new Request(Request.Types.ROOM_CHANHE_NAME);
+        Request request = new Request(Request.Types.ROOM_CHANGE_NAME);
         request.addParameter("roomId", room.getId());
         request.addParameter("name", newName);
         try {
@@ -218,7 +218,7 @@ public class RoomThread implements Runnable {
         }
     }
 
-    public void disconnetAll() {
+    public void disconnectAll() {
         synchronized (activeUsers) {
             Object[] users = activeUsers.keySet().toArray();
             for (Object user : users) {

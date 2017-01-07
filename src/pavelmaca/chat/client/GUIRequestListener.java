@@ -77,7 +77,7 @@ public class GUIRequestListener implements Runnable {
                     running = false;
                     //mainWindow.disconect();
                     break;
-                case ROOM_CHANHE_NAME:
+                case ROOM_CHANGE_NAME:
                     mainWindow.roomChangeName(request.getParam("roomId"),
                             request.getParam("name"));
                     break;
