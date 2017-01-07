@@ -293,10 +293,7 @@ public class Session implements Runnable {
         Request request = new Request(Request.Types.USER_CHANGE_PASSWORD);
         request.addParameter("password", newPassword);
         Response response = sendRequest(request);
-        if (response.getCode() == Response.Codes.OK) {
-            return true;
-        }
-        return false;
+        return response.getCode() == Response.Codes.OK;
     }
 
     /**
@@ -311,10 +308,7 @@ public class Session implements Runnable {
         request.addParameter("name", newRoomName);
         request.addParameter("roomId", roomId);
         Response response = sendRequest(request);
-        if (response.getCode() == Response.Codes.OK) {
-            return true;
-        }
-        return false;
+        return response.getCode() == Response.Codes.OK;
     }
 
     /**

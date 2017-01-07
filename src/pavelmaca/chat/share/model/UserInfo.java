@@ -71,7 +71,7 @@ public class UserInfo implements Serializable, Comparable<UserInfo> {
 
     public enum Rank {
         OWNER,
-        MEMEBER;
+        MEMEBER
     }
 
     public enum Status {
