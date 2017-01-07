@@ -81,6 +81,7 @@ public class ChatList implements IComponent<JPanel> {
                 // validation
                 if (!message.getText().isEmpty()) {
                     handler.apply(message.getText());
+                    message.setText("");
                 }
             }
         };
