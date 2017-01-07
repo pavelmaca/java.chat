@@ -148,7 +148,8 @@ public class RoomThread implements Runnable {
                 // send message in parallel thread to all users
                 synchronized (activeUsers) {
                     activeUsers.entrySet().parallelStream().forEach(e -> {
-                        if (e.getKey().getId() != (Integer) request.getParam("authorId")) {
+                        //TODO make it as property ?
+                        if (!request.hasParam("authorId") || e.getKey().getId() != (Integer) request.getParam("authorId")) {
                             e.getValue().sendCommand(request);
                         }
                     });
@@ -159,5 +160,17 @@ public class RoomThread implements Runnable {
         }
         System.out.println("Stopping thread for room " + room.getId());
         running = false;
+    }
+
+    public void changeRoomName(String newName) {
+        getRoom().setName(newName);
+        Request request = new Request(Request.Types.ROOM_CHANHE_NAME);
+        request.addParameter("roomId", room.getId());
+        request.addParameter("name", newName);
+        try {
+            requestQueue.putLast(request);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

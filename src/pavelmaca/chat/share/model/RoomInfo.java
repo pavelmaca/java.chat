@@ -42,4 +42,8 @@ public class RoomInfo implements Serializable {
     public int hashCode() {
         return id;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

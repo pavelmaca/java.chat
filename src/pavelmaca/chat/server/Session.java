@@ -62,6 +62,7 @@ public class Session implements Runnable {
         requestHandlers.put(Request.Types.ROOM_USER_LEAVE, this::handleLeaveRoom);
         requestHandlers.put(Request.Types.LOGOUT, this::handleLogout);
         requestHandlers.put(Request.Types.USER_CHANGE_PASSWORD, this::handleChangeUserPassword);
+        requestHandlers.put(Request.Types.ROOM_CHANHE_NAME, this::handleChangeRoomName);
     }
 
     @Override
@@ -292,6 +293,22 @@ public class Session implements Runnable {
         sendResponse(new ErrorResponse("Cant change password, try again later."));
     }
 
+    private void handleChangeRoomName(Request request) {
+        String newName = request.getParam("name");
+        int roomId = request.getParam("roomId");
+        RoomThread roomThread = roomManager.getThread(roomId);
+        Room room = roomThread.getRoom();
+        if (newName.length() > 0 && room.getOwner().getId() == currentUser.getId()) {
+            boolean status = roomRepository.changeName(room, newName);
+            if (status) {
+                roomThread.changeRoomName(newName);
+                sendResponse(new Response(Response.Codes.OK));
+                return;
+            }
+        }
+        sendResponse(new ErrorResponse("Cant change password, try again later."));
+    }
+
 
     public void sendCommand(Request request) {
         try {
@@ -352,6 +369,7 @@ public class Session implements Runnable {
                 Request.Types.LOGOUT,
                 Request.Types.USER_CHANGE_PASSWORD,
                 Request.Types.USER_STATUS,
+                Request.Types.ROOM_CHANHE_NAME,
         });
 
         protected Request.Types[] allowedCommands;

@@ -220,4 +220,15 @@ public class Session implements Runnable {
         }
         return false;
     }
+
+    public boolean roomChangeName(int roomId, String newRoomName) {
+        Request request = new Request(Request.Types.ROOM_CHANHE_NAME);
+        request.addParameter("name", newRoomName);
+        request.addParameter("roomId", roomId);
+        Response response = sendRequest(request);
+        if (response.getCode() == Response.Codes.OK) {
+            return true;
+        }
+        return false;
+    }
 }

@@ -44,7 +44,6 @@ public class GUIRequestListener implements Runnable {
 
             switch (request.getType()) {
                 case ROOM_USER_CONNECTED:
-                    //TODO when adin re-join room, no icon is displayed
                     mainWindow.userConnected(
                             request.getParam("roomId"),
                             request.getParam("user")
@@ -69,6 +68,10 @@ public class GUIRequestListener implements Runnable {
                 case CLOSE:
                     running = false;
                     //mainWindow.disconect();
+                    break;
+                case ROOM_CHANHE_NAME:
+                    mainWindow.roomChangeName( request.getParam("roomId"),
+                            request.getParam("name"));
                     break;
                 default:
                     System.out.println("Invalid request " + request.getType());

@@ -32,4 +32,7 @@ public class Room {
         return new RoomInfo(id, name);
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 }

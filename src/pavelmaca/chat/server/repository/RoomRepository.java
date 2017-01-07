@@ -161,4 +161,19 @@ public class RoomRepository extends Repository {
 
         return users;
     }
+
+    public boolean changeName(Room room, String newName) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("UPDATE room SET name = ? WHERE id = ? ");
+            statement.setString(1, newName);
+            statement.setInt(2, room.getId());
+
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

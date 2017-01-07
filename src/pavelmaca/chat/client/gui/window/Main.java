@@ -110,6 +110,27 @@ public class Main extends Window {
             removeRoom(roomStatus);
         });
 
+        roomList.addRenameActionListener(roomStatus -> {
+            String newRoomName = (String) JOptionPane.showInputDialog(
+                    frame,
+                    "Change room name",
+                    roomStatus.getRoomInfo().getName(),
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    null,
+                    roomStatus.getRoomInfo().getName());
+
+            if (newRoomName != null && !newRoomName.isEmpty() && !newRoomName.equals(roomStatus.getRoomInfo().getName())) {
+                if (session.roomChangeName(roomStatus.getRoomInfo().getId(), newRoomName)) {
+                    //TODO check name duplicity on server, also on creation
+                    roomStatus.getRoomInfo().setName(newRoomName);
+                    roomList.refresh();
+                } else {
+                    System.out.println("Error during changing room name");
+                }
+            }
+        });
+
         headerMenu.addChangePasswordActionListener(e -> {
             ChangePassword changePassword = new ChangePassword();
             changePassword.onCancel(changePassword::close);
@@ -230,6 +251,12 @@ public class Main extends Window {
         if (roomList.getSelected().equals(roomStatus)) {
             userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));
         }
+        roomList.refresh();
+    }
+
+    public void roomChangeName(int roomId, String newName) {
+        RoomStatus roomStatus = roomStatuses.get(roomId);
+        roomStatus.getRoomInfo().setName(newName);
         roomList.refresh();
     }
 }
