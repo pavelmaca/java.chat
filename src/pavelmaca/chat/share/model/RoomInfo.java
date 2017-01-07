@@ -8,11 +8,12 @@ import java.io.Serializable;
 public class RoomInfo implements Serializable {
     private int id;
     private String name;
-    private int ownerId;
+    private boolean hasPassword;
 
-    public RoomInfo(int id, String name) {
+    public RoomInfo(int id, String name, boolean hasPassword) {
         this.id = id;
         this.name = name;
+        this.hasPassword = hasPassword;
     }
 
     public int getId() {
@@ -21,6 +22,10 @@ public class RoomInfo implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public boolean hasPassword() {
+        return hasPassword;
     }
 
     @Override

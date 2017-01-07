@@ -6,6 +6,7 @@ import pavelmaca.chat.client.gui.components.HeaderMenu;
 import pavelmaca.chat.client.gui.components.RoomList;
 import pavelmaca.chat.client.gui.components.UserList;
 import pavelmaca.chat.share.Lambdas;
+import pavelmaca.chat.share.ResponseException;
 import pavelmaca.chat.share.model.MessageInfo;
 import pavelmaca.chat.share.model.RoomInfo;
 import pavelmaca.chat.share.model.RoomStatus;
@@ -160,17 +161,20 @@ public class Main extends Window {
         ArrayList<RoomInfo> roomList = session.getAvailableRoomList();
 
         JoinRoom joinRoomWindow = new JoinRoom(roomList);
-        joinRoomWindow.onJoinSubmit(roomId -> {
-            RoomStatus room = session.joinRoom(roomId);
-            if (room != null) {
-                addRoom(room, true);
-                joinRoomWindow.close();
+        joinRoomWindow.onJoinSubmit((roomId, password) -> {
+            try {
+                RoomStatus room = session.joinRoom(roomId, password);
+                if (room != null) {
+                    addRoom(room, true);
+                    joinRoomWindow.close();
+                }
+            } catch (ResponseException e) {
+                joinRoomWindow.showError(e.getMessage());
             }
-            // TODO room authentication
         });
 
-        joinRoomWindow.onNewRoomSubmit(roomName -> {
-            RoomStatus room = session.createRoom(roomName);
+        joinRoomWindow.onNewRoomSubmit((roomName, roomPassword) -> {
+            RoomStatus room = session.createRoom(roomName, roomPassword);
             if (room != null) {
                 addRoom(room, true);
                 joinRoomWindow.close();

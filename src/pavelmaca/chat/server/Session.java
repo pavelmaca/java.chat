@@ -210,7 +210,8 @@ public class Session implements Runnable {
         System.out.println("new room request received");
 
         String roomName = request.getParam("name");
-        Room room = roomRepository.createRoom(roomName, currentUser);
+        String roomPassword = request.getParam("password");
+        Room room = roomRepository.createRoom(roomName, currentUser, roomPassword);
         roomRepository.joinRoom(room, currentUser);
 
         roomManager.joinRoomThread(room, currentUser, this);
@@ -247,8 +248,20 @@ public class Session implements Runnable {
         System.out.println("join room request recieved");
 
         int roomId = request.getParam("roomId");
+        String password = request.getParam("password");
 
-        Room room = roomRepository.joinRoom(roomId, currentUser);
+        Room room = roomRepository.findOneById(roomId);
+        if (room == null) {
+            sendResponse(new ErrorResponse("Invalid room ID"));
+            return;
+        }
+
+        if (!room.isPasswordValid(password)) {
+            sendResponse(new ErrorResponse("Invalid password"));
+            return;
+        }
+
+        roomRepository.joinRoom(room, currentUser);
         roomManager.joinRoomThread(room, currentUser, this);
 
         Response response = new Response(Response.Codes.OK);

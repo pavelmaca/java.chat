@@ -4,10 +4,7 @@ import pavelmaca.chat.server.entity.Room;
 import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.RoomInfo;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -22,19 +19,25 @@ public class RoomRepository extends Repository {
         this.userRepository = userRepository;
     }
 
-    public Room createRoom(String name, User owner) {
+    public Room createRoom(String name, User owner, String password) {
         try {
 
-            PreparedStatement statement = connection.prepareStatement("INSERT INTO room (name, owner_id) VALUES(?, ?)", new String[]{"id"});
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO room (name, owner_id, password) VALUES(?, ?, ?)", new String[]{"id"});
             statement.setString(1, name);
             statement.setInt(2, owner.getId());
+
+            if(password.isEmpty()){
+                statement.setNull(3, Types.VARCHAR);
+            }else{
+                statement.setString(3, password);
+            }
 
             statement.executeUpdate();
 
             ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
                 System.out.println("Room " + name + " created");
-                return new Room(generatedKeys.getInt(1), name, owner);
+                return new Room(generatedKeys.getInt(1), name, owner, password);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -42,19 +45,22 @@ public class RoomRepository extends Repository {
         return null;
     }
 
-    public Room joinRoom(int roomId, User user) {
+  /*  public Room joinRoom(int roomId, User user) {
         Room room = findOneById(roomId);
         return joinRoom(room, user);
-    }
+    }*/
 
-    private Room findOneById(int roomId) {
+    public Room findOneById(int roomId) {
         try {
-            PreparedStatement statement = connection.prepareStatement("SELECT owner_id, id, name FROM room WHERE id = ?");
+            PreparedStatement statement = connection.prepareStatement("SELECT owner_id, id, name, password FROM room WHERE id = ?");
             statement.setInt(1, roomId);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                User owner = userRepository.findOneById(resultSet.getInt(1));
-                return new Room(resultSet.getInt(2), resultSet.getString(3), owner);
+                User owner = userRepository.findOneById(resultSet.getInt("owner_id"));
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                String password = resultSet.getString("password");
+                return new Room(id, name, owner, password);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -93,7 +99,7 @@ public class RoomRepository extends Repository {
     public ArrayList<RoomInfo> getAllAvailable(User user) {
         try {
             PreparedStatement statement = connection.prepareStatement("" +
-                    "SELECT r.id, r.name FROM room r " +
+                    "SELECT r.id, r.name, r.password FROM room r " +
                     "LEFT JOIN room_block rb ON rb.room_id = r.id AND rb.user_id = ? " +
                     "LEFT JOIN room_user ru ON ru.room_id = r.id AND ru.user_id = ? " +
                     "WHERE rb.id IS NULL AND ru.id IS NULL");
@@ -105,7 +111,10 @@ public class RoomRepository extends Repository {
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
                 String name = resultSet.getString("name");
-                rooms.add(new RoomInfo(id, name));
+                String password = resultSet.getString("password");
+
+                boolean hasPassword = !(password == null || password.isEmpty());
+                rooms.add(new RoomInfo(id, name, hasPassword));
             }
             return rooms;
         } catch (SQLException e) {
@@ -124,7 +133,7 @@ public class RoomRepository extends Repository {
         ArrayList<Room> rooms = new ArrayList<>();
         try {
             PreparedStatement statement = connection.prepareStatement("" +
-                    "SELECT r.owner_id, r.id, r.name FROM room r " +
+                    "SELECT r.owner_id, r.id, r.name, r.password FROM room r " +
                     "JOIN room_user ru ON ru.room_id = r.id AND ru.user_id = ? ");
             statement.setInt(1, user.getId());
 
@@ -133,7 +142,8 @@ public class RoomRepository extends Repository {
                 User owner = userRepository.findOneById(resultSet.getInt("owner_id"));
                 int id = resultSet.getInt("id");
                 String name = resultSet.getString("name");
-                rooms.add(new Room(id, name, owner));
+                String password = resultSet.getString("password");
+                rooms.add(new Room(id, name, owner, password));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -176,4 +186,5 @@ public class RoomRepository extends Repository {
         }
         return false;
     }
+
 }

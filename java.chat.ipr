@@ -600,7 +600,7 @@
       </database-info>
       <case-sensitivity plain-identifiers="lower" quoted-identifiers="lower" />
       <secret-storage>master_key</secret-storage>
-      <user-name>assassik</user-name>
+      <user-name>root</user-name>
       <resolve-scope>jcu-java-chat:</resolve-scope>
     </data-source>
   </component>

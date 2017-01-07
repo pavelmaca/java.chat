@@ -1,5 +1,6 @@
 package pavelmaca.chat.client;
 
+import pavelmaca.chat.share.ResponseException;
 import pavelmaca.chat.share.comunication.Request;
 import pavelmaca.chat.share.comunication.Response;
 import pavelmaca.chat.share.model.RoomInfo;
@@ -129,9 +130,10 @@ public class Session implements Runnable {
         return new ArrayList<>();
     }
 
-    public RoomStatus createRoom(String name) {
+    public RoomStatus createRoom(String name, String password) {
         Request request = new Request(Request.Types.ROOM_CREATE);
         request.addParameter("name", name);
+        request.addParameter("password", password);
         Response response = sendRequest(request);
         if (response.getCode() == Response.Codes.OK) {
             return response.getBody();
@@ -139,14 +141,16 @@ public class Session implements Runnable {
         return null;
     }
 
-    public RoomStatus joinRoom(int roomId) {
+    public RoomStatus joinRoom(int roomId, String password) throws ResponseException {
         Request request = new Request(Request.Types.ROOM_USER_JOIN);
         request.addParameter("roomId", roomId);
+        request.addParameter("password", password);
         Response response = sendRequest(request);
         if (response.getCode() == Response.Codes.OK) {
             return response.getBody();
+        }else{
+            throw new ResponseException(response);
         }
-        return null;
     }
 
     public void leaveRoom(int roomId) {

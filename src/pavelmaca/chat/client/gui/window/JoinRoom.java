@@ -2,6 +2,7 @@ package pavelmaca.chat.client.gui.window;
 
 import pavelmaca.chat.share.Lambdas;
 import pavelmaca.chat.share.model.RoomInfo;
+import pavelmaca.chat.share.model.RoomStatus;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +18,9 @@ public class JoinRoom extends Window {
     private JLabel createRoomLabel;
     private JTextField createRoom;
 
+    private JLabel roomPasswordLabel;
+    private JTextField roomPassword;
+
     private JButton joinBtn;
 
     private RoomInfo newRoom;
@@ -24,15 +28,29 @@ public class JoinRoom extends Window {
     public JoinRoom(ArrayList<RoomInfo> roomList) {
         super("Join room");
 
-        newRoom = new RoomInfo(-1, "<add new>");
+        newRoom = new RoomInfo(-1, "<add new>", true);
         roomSelectBox.addItem(newRoom);
 
         roomList.forEach(r -> roomSelectBox.addItem(r));
 
         roomSelectBox.addActionListener(e -> {
-            boolean visible = roomSelectBox.getSelectedItem().equals(newRoom);
-            createRoom.setVisible(visible);
-            createRoomLabel.setVisible(visible);
+            RoomInfo selectedRoom = (RoomInfo) roomSelectBox.getSelectedItem();
+            boolean isNewRoom = selectedRoom.equals(newRoom);
+            createRoom.setVisible(isNewRoom);
+            createRoomLabel.setVisible(isNewRoom);
+
+            if (isNewRoom) {
+                roomPasswordLabel.setText("Password (optional)");
+                roomPasswordLabel.setVisible(true);
+                roomPassword.setVisible(true);
+            } else if (selectedRoom.hasPassword()) {
+                roomPasswordLabel.setText("Password (required)");
+                roomPasswordLabel.setVisible(true);
+                roomPassword.setVisible(true);
+            } else {
+                roomPasswordLabel.setVisible(false);
+                roomPassword.setVisible(false);
+            }
             frame.pack();
         });
     }
@@ -54,6 +72,11 @@ public class JoinRoom extends Window {
         createRoom = new JTextField();
         panel.add(createRoom);
 
+        roomPasswordLabel = new JLabel("Password (optional)");
+        panel.add(roomPasswordLabel);
+
+        roomPassword = new JTextField();
+        panel.add(roomPassword);
 
         errorLabel = new JLabel("");
         errorLabel.setVisible(false);
@@ -75,20 +98,30 @@ public class JoinRoom extends Window {
         frame.pack();
     }
 
-    public void onJoinSubmit(Lambdas.Function1<Integer> callback) {
+    public void showError(String text) {
+        errorLabel.setText(text);
+        errorLabel.setVisible(true);
+        frame.pack();
+    }
+
+    public void onJoinSubmit(Lambdas.Function2<Integer, String> callback) {
         joinBtn.addActionListener(e -> {
             RoomInfo selected = (RoomInfo) roomSelectBox.getSelectedItem();
             if (selected.getId() != newRoom.getId()) {
-                callback.apply(selected.getId());
+                if (selected.hasPassword() && roomPassword.getText().isEmpty()) {
+                    // need password to continue
+                    return;
+                }
+                callback.apply(selected.getId(), roomPassword.getText());
             }
         });
     }
 
-    public void onNewRoomSubmit(Lambdas.Function1<String> callback) {
+    public void onNewRoomSubmit(Lambdas.Function2<String, String> callback) {
         joinBtn.addActionListener(e -> {
             RoomInfo selected = (RoomInfo) roomSelectBox.getSelectedItem();
             if (selected.getId() == newRoom.getId()) {
-                callback.apply(createRoom.getText());
+                callback.apply(createRoom.getText(), roomPassword.getText());
             }
         });
     }
