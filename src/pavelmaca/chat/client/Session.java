@@ -254,4 +254,13 @@ public class Session implements Runnable {
             throw new ResponseException(response);
         }
     }
+
+    public void roomDelete(int roomId) throws ResponseException {
+        Request request = new Request(Request.Types.ROOM_DELETE);
+        request.addParameter("roomId", roomId);
+        Response response = sendRequest(request);
+        if (response.getCode() != Response.Codes.OK) {
+            throw new ResponseException(response);
+        }
+    }
 }

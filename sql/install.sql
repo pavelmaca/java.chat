@@ -26,6 +26,7 @@ CREATE TABLE `room` (
   `name` varchar(255) NOT NULL,
   `owner_id` int(11) NOT NULL,
   `password` varchar(255) DEFAULT NULL,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `owner` (`owner_id`),
   CONSTRAINT `room_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `user` (`id`)
@@ -69,4 +70,4 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
--- 2017-01-07 14:16:17
+-- 2017-01-07 18:17:44

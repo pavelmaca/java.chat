@@ -63,4 +63,5 @@ public class RoomManager {
                 .filter(roomThread -> roomThread.hasUser(user))
                 .collect(Collectors.toList());
     }
+
 }

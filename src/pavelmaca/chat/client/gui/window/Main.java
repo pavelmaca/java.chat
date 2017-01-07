@@ -35,7 +35,7 @@ public class Main extends Window {
     private boolean closingForLogout = false;
 
     public Main(Session session, HashMap<Integer, RoomStatus> roomStatus, UserInfo identity) {
-        super("Chat");
+        super(identity.getName() + " - Chat");
         this.identity = identity;
         this.session = session;
 
@@ -96,7 +96,7 @@ public class Main extends Window {
             if (room == null) return;
 
             //change window title to room name
-            frame.setTitle(room.getRoomInfo().getName());
+            frame.setTitle(identity.getName() + " - " + room.getRoomInfo().getName());
 
             System.out.println("selected room " + room.getRoomInfo().getId());
             userList.show(room.getUserList(), room.getUserInfo(identity));
@@ -166,6 +166,15 @@ public class Main extends Window {
                 }
             });
             dialog.open();
+        });
+
+        roomList.addDeleteActionListener(roomStatus -> {
+            try {
+                session.roomDelete(roomStatus.getRoomInfo().getId());
+                removeRoom(roomStatus);
+            } catch (ResponseException e) {
+                showError(e.getMessage());
+            }
         });
 
         headerMenu.addChangePasswordActionListener(e -> {
@@ -274,6 +283,10 @@ public class Main extends Window {
 
     public void userDisconnected(int roomId, int userId) {
         RoomStatus roomStatus = roomStatuses.get(roomId);
+        if (identity.getId() == userId) {
+            removeRoom(roomStatus);
+            return;
+        }
         roomStatus.userDisconnected(userId);
         if (roomList.getSelected().equals(roomStatus)) {
             userList.show(roomStatus.getUserList(), roomStatus.getUserInfo(identity));

@@ -26,9 +26,9 @@ public class RoomRepository extends Repository {
             statement.setString(1, name);
             statement.setInt(2, owner.getId());
 
-            if(password.isEmpty()){
+            if (password.isEmpty()) {
                 statement.setNull(3, Types.VARCHAR);
-            }else{
+            } else {
                 statement.setString(3, password);
             }
 
@@ -102,7 +102,7 @@ public class RoomRepository extends Repository {
                     "SELECT r.id, r.name, r.password FROM room r " +
                     "LEFT JOIN room_block rb ON rb.room_id = r.id AND rb.user_id = ? " +
                     "LEFT JOIN room_user ru ON ru.room_id = r.id AND ru.user_id = ? " +
-                    "WHERE rb.id IS NULL AND ru.id IS NULL");
+                    "WHERE rb.id IS NULL AND ru.id IS NULL AND r.deleted != 1");
             statement.setInt(1, user.getId());
             statement.setInt(2, user.getId());
 
@@ -134,7 +134,8 @@ public class RoomRepository extends Repository {
         try {
             PreparedStatement statement = connection.prepareStatement("" +
                     "SELECT r.owner_id, r.id, r.name, r.password FROM room r " +
-                    "JOIN room_user ru ON ru.room_id = r.id AND ru.user_id = ? ");
+                    "JOIN room_user ru ON ru.room_id = r.id AND ru.user_id = ? " +
+                    "WHERE r.deleted != 1");
             statement.setInt(1, user.getId());
 
             ResultSet resultSet = statement.executeQuery();
@@ -206,6 +207,21 @@ public class RoomRepository extends Repository {
         try {
             PreparedStatement statement = connection.prepareStatement("UPDATE room SET password = ? WHERE id = ? ");
             statement.setNull(1, Types.VARCHAR);
+            statement.setInt(2, room.getId());
+
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean delete(Room room) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("UPDATE room SET deleted = ? WHERE id = ? ");
+            statement.setInt(1, 1);
             statement.setInt(2, room.getId());
 
             statement.executeUpdate();

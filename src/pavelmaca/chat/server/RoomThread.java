@@ -7,6 +7,8 @@ import pavelmaca.chat.server.entity.User;
 import pavelmaca.chat.share.model.UserInfo;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -75,23 +77,25 @@ public class RoomThread implements Runnable {
      *
      * @param user
      */
-    public void disconnect(User user) {
+    public void disconnect(User user, boolean sendToRequestAuthor) {
         synchronized (activeUsers) {
             System.out.println("user " + user.getName() + " disconnected from room " + room.getId());
             Request request = new Request(Request.Types.ROOM_USER_DISCONNECTED);
             request.addParameter("roomId", room.getId());
             request.addParameter("userId", user.getId());
-            request.addParameter("authorId", user.getId());
+            if (!sendToRequestAuthor) {
+                request.addParameter("authorId", user.getId());
+            }
             try {
                 requestQueue.putLast(request);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            activeUsers.remove(user);
+          /*  activeUsers.remove(user);
             if (activeUsers.isEmpty()) {
                 stopThread();
-            }
+            }*/
         }
     }
 
@@ -147,12 +151,27 @@ public class RoomThread implements Runnable {
                 }
                 // send message in parallel thread to all users
                 synchronized (activeUsers) {
+                    Iterator<Map.Entry<User, Session>> iterator = activeUsers.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry<User, Session> userSessionEntry = iterator.next();
+
+                        //TODO make it as property ?
+                        if (!request.hasParam("authorId") || userSessionEntry.getKey().getId() != (Integer) request.getParam("authorId")) {
+                            userSessionEntry.getValue().sendCommand(request);
+                        }
+
+                        // remove user from queue after sending room disconnect
+                        if (request.getType() == Request.Types.ROOM_USER_DISCONNECTED && userSessionEntry.getKey().getId() == (Integer) request.getParam("userId")) {
+                            iterator.remove();
+                        }
+                    }
+                    /*
                     activeUsers.entrySet().parallelStream().forEach(e -> {
                         //TODO make it as property ?
                         if (!request.hasParam("authorId") || e.getKey().getId() != (Integer) request.getParam("authorId")) {
                             e.getValue().sendCommand(request);
                         }
-                    });
+                    });*/
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -171,6 +190,15 @@ public class RoomThread implements Runnable {
             requestQueue.putLast(request);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void disconnetAll() {
+        synchronized (activeUsers) {
+            Object[] users = activeUsers.keySet().toArray();
+            for (Object user : users) {
+                disconnect((User) user, true);
+            }
         }
     }
 }
