@@ -1,0 +1,169 @@
+\documentclass[a4]{article}
+\usepackage{xltxtra,polyglossia} 
+\setdefaultlanguage{czech} 
+\usepackage[]{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{blindtext}
+\usepackage{scrextend}
+\usepackage{hyperref}
+\addtokomafont{labelinglabel}{\sffamily}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{UAI/685 Chat server - klient}
+\author{Pavel Máca}
+
+\begin{document}
+\begin{titlepage}
+	\centering
+	{\Huge Objektové programování v Javì 2\par}
+	\vspace{1cm}
+	{\Large Zimní semestr 2016/17\par}
+	\vspace{1.5cm}
+	{\huge\bfseries Chat server - klient\par}
+	\vspace{2cm}
+	{\Large Pavel Máca\par}
+	\vfill
+
+	{\large Projekt by vypracován samostatnì za pomoci zdrojù popsanıch níe.\par}
+	{\large \today\par}
+\end{titlepage}
+
+\pagebreak
+
+\section{Zadání projektu}
+Komunikaèní klient pøipojitelnı na specifické rozhraní, které umoòuje komunikaci mezi ostatními klienty. Server a klienti budou poskytovat mono vytváøení tzv. chatovacích místností.
+
+Forma komunikace bude textová.
+
+Základní rozhraní bude tvoøit nabídka dostupnıch chatovacích místností a okno s aktuálnì otevøenou místností a zprávami.
+
+Pokud nìkterı uivatel odešle zprávu do stejné místnosti, zobrazí se ostatním uivatelùm, kteøí jsou pøipojeni v dané místnosti.
+Pokud uivatel obdrí zprávu v jiné místnosti, zobrazí se poèet nepøeètenıch zpráv k dané místnosti v seznamu všech místností.
+
+Uivatel bude vstupovat do místnosti, tím e zaène naslouchat její komunikaci.
+
+Online i offline komunikace. Pokud klient nebude online, zprávy pro nìj se mu zobrazí po pøihlášení.
+
+Systém ukáe klientovi, kdo je aktuálnì online, pokud se nìkdo pøihlásí/odhlásí, všichni klienti na to budou ihned reagovat
+
+Skupiny budou definovány obecnì, uivatel bude moci byt ve vice skupinách, GUI bude mít funkcionalitu, pomoci které se uivatel bude moci sám pøihlašovat a odhlasovat ze skupin
+
+Klient i server v javì.
+
+Projekt bude vyuívat síové programování a vláknové programování pøi naslouchání na více chatovacích místnostech a databázi.
+
+\section{Analıza funkcionality a øešení}
+\subsection{Funkcionalita}
+
+Projekt obsahuje jak serverovou èást, tak klienta. Komunikace probíhá na úrovni TCP socketù. Kadı klient se pøipojuje na server, pomocí nastavené IP adresy a portu.
+
+\subsection{Server}
+
+Aplikace bez grafického rozhraní, pouze konzolovı vstup a vıstup. Po spuštìní lze nastavit èíslo portu pro naslouchání novıch klientù. Pøi prvním spuštìní se vyplní pøístupové údaje k databázi.
+
+Kadı pøipojenı klient vytvoøí samostatné vlákno, které má za úkol pøíjem veškeré komunikace od daného klienta. Pokud klient vytvoøí novou místnost, tato místnost bude reprezentována vláknem, rozesílá veškerou komunikaci všem klientùm, kteøí se do místnosti pøipojí. Ve chvíli kdy je místnost prázdná, se vlákno ukonèí. Místnost je však nadále uchována v databázi a do jejího smazání, které mùe provést pouze tvùrce místnosti. Po pøipojení do místnosti, které je prázdná, se opìt spustí vlákno této místnosti.
+
+Uivatel, kterı byl off-line a neopustil místnost, obdrí veškeré zprávy z této doby, jakmile bude opìt online.
+
+Zpráva od klienta je po obdrení zapsána do databáze a následnì odeslána vláknem místnosti všem pøipojenım klientùm.
+Ostatní události, jako odchod z místnosti, pøejmenování místnosti apod. jsou také rozesílány všem aktuálnì pøipojenım klientùm.
+
+\subsection{Databáze}
+
+Schéma databáze se nachází v souboru '/sql/install.sql'
+
+Kadı uivatel je reprezentován záznamem v tabulce 'user'. Záznam obsahuje id, která je jedineèné a automaticky generované. Dále pak jméno a heslo.
+
+Místnost je identifikovatelná pomocí èíselného identifikátoru, kterı je jednoznaènı. Kadá místnost má také svého autora, kterı je automaticky administrátorem této místnosti. Po smazání místnosti je tato místnost oznaèena jako smazaná, ale data zùstávají nadále zachována.
+
+Seznam uivatelù v místnosti je reprezentován záznamy v tabulce 'user\_room'.
+Seznam blokovanıch uivatelù urèité místnosti se nachází v tabulce 'user\_block'.
+
+Zpráva obsahuje èas odeslání, odesílatele a místnost, ve které byla odeslána.
+
+\subsection{Klient}
+
+Grafické rozhraní umoòuje nastavit IP adresu a port serveru, ke kterému se klient pøipojí. Tuto volbu lze uloit.
+Po pøipojení na server se uivatel pøihlásí svou pøezdívkou a heslem.
+Pokud uivatel neexistuje, automaticky se vytvoøí záznam na serveru.
+
+Pøihlášenému uivateli se zobrazí seznam všech místností, ve kterıch je pøipojen. Dále má monost pøipojit se do ji existujících místností, nebo vytvoøit novou. Místnost lze chránit heslem a vytvoøit ji tak soukromou pro specifické uivatele.
+
+U kadé místnosti je zobrazen seznam online / pøipojenıch uivatelù. 
+Tvùrce místnosti má monost zmìnit název, nastavit heslo a vylouèit (zablokovat) ostatní uivatele z místnosti.
+
+Nastavení klienta (server IP a port) se ukládají do lokálního souboru.
+
+Uivatel má monost se odhlásit, èi odpojit od serveru.
+
+\subsection{Komunikace klient-server}
+
+Komunikaci na stranì klienta obstarává jedno vlákno.
+
+Mezi server a klientem se posílají objekty typu 'Request' a 'Response', kterı se podle parametru dále zpracovávají.
+Data formát dat pro komunikaci je specifikován modely v 'pavelmaca.chat.share.model'.
+
+Klient po vytvoøení TCP spojení odešle 'Hand-shake' request, na kterı server odpovídá 'Response.OK'.
+Následnì klient odesílá autorizaèní poadavek, na kterı server odpovídá Response, která obsahuje informace o pøihlášeném uivateli.
+Po obdrení identity klient posílá poadavek celkovı status uivatele. Server odpovídá seznamem místností, stavy jednotlivıch uivatelù a historií zpráv. Tím se souèasnì klient pøipojí do všech místností pro odbìr dalších zpráv.
+
+Stavové informace odesílá server z RoomThread vlákna pomocí objektu Request s vyplnìnım typem a parametry.
+Klient tìmto informacím naslouchá pomocí vlákna Session, které je øadí do blokující fronty, od kud si je pøebírá vlákno GUIRequestListener, které bìí pod EDT a má monost aktualizovat GUI.
+
+Po pøipojení do existující místnosti uivatel obdrí historii pro tuto místnost.
+
+Kadı pøipojenı klient má nastavenı aktuální stav pøipojení. Ten urèuje, které poadavky mùe server od klienta pøijímat. Napøíklad nepøihlášenı klient nemùe odesílat nové zprávy.
+
+
+\section{Diagramy tøíd}
+\subsection{Server}
+\scalebox{0.6}{\includegraphics{diagram_server.PNG}}
+
+\subsection{Klient}
+\scalebox{0.35}{\includegraphics{diagram_klient.PNG}}
+
+\subsection{Server a klient spoleènì}
+\scalebox{0.25}{\includegraphics{diagram_vse.PNG}}
+
+\section{Zhodnocení vısledku}
+Vıslednı projekt splòuje zadání a vıraznì se nijak neliší od pùvodní analızy. Aplikace umoòuje rozšiøitelnost o další funkcionalitu díky univerzální implementaci poadavkù a odpovìdí.
+Napojení na databázi by mohlo bıt øešeno pomocí ORM (napø. \href{http://hibernate.org/orm/}{Hibernate}), nicménì to nebylo souèástí pøedmìtu a proto bylo zvoleno hybridní øešení s pouitím JDBC API.
+
+Díky pouití blokující fronty na obou stranách komunikace jsou zprávy pøijímány a odesílány synchronnì.
+
+Celı projekt je publikován na adrese \href{https://github.com/pavelmaca/jcu-java-chat}{github.com/pavelmaca/jcu-java-chat}
+
+\section{Pouité zdroje}
+\begin{itemize} 
+	\item{Prezentace a vıukové materiály k pøedmìtu "Objektové programování II - UAI/685"}
+    \item{Dokumentace Javy 8 od Oracle - \href{https://docs.oracle.com/javase/8}{docs.oracle.com/javase/8}}
+	\item{Diskuzní fórum stackoverflow.com}
+\end{itemize}
+
+\end{document}
